@@ -1,12 +1,14 @@
 import Link from "next/link";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { Hero, FilterSelect } from "@/components/Hero";
+import { Hero } from "@/components/Hero";
 import { Panel } from "@/components/Panel";
 import { IconStatTile } from "@/components/IconStatTile";
 import { LineChart, ChartLegend, type Series } from "@/components/charts/LineChart";
 import { Sparkline } from "@/components/charts/Sparkline";
 import { Pill } from "@/components/Pill";
 import { LinkButton } from "@/components/Button";
+import { DashboardFilters } from "@/components/DashboardFilters";
 import {
   GlobeIcon,
   CheckCircleIcon,
@@ -25,13 +27,38 @@ const SERIES_COLORS = {
   Draft: "#9ca3af",
 };
 
-const DAY_BUCKETS = 30;
+type Filters = {
+  siteId: number | null;
+  status: "all" | "published" | "draft" | "needs_review";
+  rangeDays: number | null; // null = all-time
+};
+
+function parseFilters(sp: Record<string, string | string[] | undefined>): Filters {
+  const sRaw = Array.isArray(sp.site) ? sp.site[0] : sp.site;
+  const stRaw = Array.isArray(sp.status) ? sp.status[0] : sp.status;
+  const rRaw = Array.isArray(sp.range) ? sp.range[0] : sp.range;
+
+  const siteId = sRaw && sRaw !== "all" ? Number(sRaw) : null;
+  const allowedStatuses = ["published", "draft", "needs_review"] as const;
+  const status: Filters["status"] =
+    stRaw && (allowedStatuses as readonly string[]).includes(stRaw)
+      ? (stRaw as Filters["status"])
+      : "all";
+  const rangeDays =
+    rRaw === "all"
+      ? null
+      : rRaw && /^\d+$/.test(rRaw)
+        ? Math.max(1, Math.min(365, Number(rRaw)))
+        : 30;
+
+  return { siteId, status, rangeDays };
+}
 
 function dateLabel(d: Date): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-async function loadEverything() {
+async function loadEverything(filters: Filters) {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
@@ -39,9 +66,37 @@ async function loadEverything() {
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
 
+  // Chart always covers the same window as the active range (default 30).
+  // "All time" still uses 30 days for the chart since older data isn't
+  // comparable; totals shown above the chart use full-history counts.
+  const dayBuckets = filters.rangeDays ?? 30;
   const since = new Date();
-  since.setDate(since.getDate() - DAY_BUCKETS);
+  since.setDate(since.getDate() - dayBuckets);
   since.setHours(0, 0, 0, 0);
+
+  // Common filter snippets
+  const siteWhere: Prisma.ArticleWhereInput = filters.siteId
+    ? { siteId: filters.siteId }
+    : {};
+  const kwSiteWhere: Prisma.KeywordWhereInput = filters.siteId
+    ? { siteId: filters.siteId }
+    : {};
+  const sinceFilter: Prisma.DateTimeFilter = { gte: since };
+  // For "all time" only the chart uses `since`; totals do not bound by date.
+  const isAllTime = filters.rangeDays == null;
+
+  // Article status filter (only impacts the "recent articles" table)
+  const recentArticlesStatusWhere: Prisma.ArticleWhereInput =
+    filters.status === "all"
+      ? {}
+      : filters.status === "needs_review"
+        ? {
+            // status="draft" rows that came from the quality gate are surfaced
+            // as needs_review via the run record, but the article itself is
+            // still status="draft". We approximate by joining drafts here.
+            status: "draft",
+          }
+        : { status: filters.status };
 
   const [
     sites,
@@ -50,37 +105,55 @@ async function loadEverything() {
     draftsTotal,
     inProgressTotal,
     recentArticles,
-    publishedThisMonth,
-    queuedThisMonth,
-    draftsThisMonth,
-    inProgressThisMonth,
+    publishedThisRange,
+    queuedThisRange,
+    draftsThisRange,
+    inProgressThisRange,
     recentRuns,
-    costMonthAgg,
+    costRangeAgg,
     historyArticles,
   ] = await Promise.all([
     prisma.site.findMany({ orderBy: { name: "asc" } }),
-    prisma.article.count({ where: { status: "published" } }),
-    prisma.keyword.count({ where: { status: "queued" } }),
-    prisma.article.count({ where: { status: "draft" } }),
-    prisma.keyword.count({ where: { status: "processing" } }),
+    prisma.article.count({ where: { ...siteWhere, status: "published" } }),
+    prisma.keyword.count({ where: { ...kwSiteWhere, status: "queued" } }),
+    prisma.article.count({ where: { ...siteWhere, status: "draft" } }),
+    prisma.keyword.count({ where: { ...kwSiteWhere, status: "processing" } }),
     prisma.article.findMany({
+      where: { ...siteWhere, ...recentArticlesStatusWhere },
       orderBy: { id: "desc" },
       take: 30,
       include: { site: { select: { name: true, slug: true } } },
     }),
     prisma.article.count({
-      where: { status: "published", publishedAt: { gte: monthStart } },
+      where: {
+        ...siteWhere,
+        status: "published",
+        ...(isAllTime ? {} : { publishedAt: sinceFilter }),
+      },
     }),
     prisma.keyword.count({
-      where: { status: "queued", createdAt: { gte: monthStart } },
+      where: {
+        ...kwSiteWhere,
+        status: "queued",
+        ...(isAllTime ? {} : { createdAt: sinceFilter }),
+      },
     }),
     prisma.article.count({
-      where: { status: "draft", createdAt: { gte: monthStart } },
+      where: {
+        ...siteWhere,
+        status: "draft",
+        ...(isAllTime ? {} : { createdAt: sinceFilter }),
+      },
     }),
     prisma.keyword.count({
-      where: { status: "processing", createdAt: { gte: monthStart } },
+      where: {
+        ...kwSiteWhere,
+        status: "processing",
+        ...(isAllTime ? {} : { createdAt: sinceFilter }),
+      },
     }),
     prisma.run.findMany({
+      where: filters.siteId ? { siteId: filters.siteId } : {},
       orderBy: { id: "desc" },
       take: 4,
       include: {
@@ -89,11 +162,14 @@ async function loadEverything() {
       },
     }),
     prisma.article.aggregate({
-      where: { createdAt: { gte: monthStart } },
+      where: {
+        ...siteWhere,
+        ...(isAllTime ? {} : { createdAt: sinceFilter }),
+      },
       _sum: { costUsd: true },
     }),
     prisma.article.findMany({
-      where: { createdAt: { gte: since } },
+      where: { ...siteWhere, createdAt: { gte: since } },
       select: {
         createdAt: true,
         publishedAt: true,
@@ -105,23 +181,23 @@ async function loadEverything() {
 
   // Build cumulative daily series for the line chart
   const dayLabels: string[] = [];
-  for (let i = 0; i < DAY_BUCKETS; i++) {
+  for (let i = 0; i < dayBuckets; i++) {
     const d = new Date(since);
     d.setDate(d.getDate() + i);
     dayLabels.push(dateLabel(d));
   }
 
   const counts = {
-    Published: Array(DAY_BUCKETS).fill(0),
-    Queued: Array(DAY_BUCKETS).fill(0),
-    "In Progress": Array(DAY_BUCKETS).fill(0),
-    Draft: Array(DAY_BUCKETS).fill(0),
+    Published: Array(dayBuckets).fill(0),
+    Queued: Array(dayBuckets).fill(0),
+    "In Progress": Array(dayBuckets).fill(0),
+    Draft: Array(dayBuckets).fill(0),
   };
 
   for (const a of historyArticles) {
     const ts = a.publishedAt ?? a.createdAt;
     const dayIndex = Math.floor((ts.getTime() - since.getTime()) / (1000 * 60 * 60 * 24));
-    if (dayIndex < 0 || dayIndex >= DAY_BUCKETS) continue;
+    if (dayIndex < 0 || dayIndex >= dayBuckets) continue;
     if (a.status === "published") counts.Published[dayIndex] += 1;
     else if (a.status === "draft") counts.Draft[dayIndex] += 1;
   }
@@ -139,9 +215,13 @@ async function loadEverything() {
     { label: "Draft", color: SERIES_COLORS.Draft, data: cumulate(counts.Draft) },
   ];
 
-  // Per-site stats for "Top Performing Sites"
+  // Per-site stats for "Top Performing Sites" — when a site is filtered, only
+  // show that one site in the panel.
+  const sitesForTop = filters.siteId
+    ? sites.filter((s) => s.id === filters.siteId)
+    : sites;
   const topSites = await Promise.all(
-    sites.slice(0, 5).map(async (s) => {
+    sitesForTop.slice(0, 5).map(async (s) => {
       const articleCount = await prisma.article.count({
         where: { siteId: s.id, status: "published" },
       });
@@ -176,19 +256,20 @@ async function loadEverything() {
     series,
     dayLabels,
     metrics: {
-      totalSites: sites.length,
+      totalSites: filters.siteId ? 1 : sites.length,
       published: publishedTotal,
       queued: queuedTotal,
       drafts: draftsTotal,
       inProgress: inProgressTotal,
       recentArticles,
-      publishedThisMonth,
-      queuedThisMonth,
-      draftsThisMonth,
-      inProgressThisMonth,
-      costMonth: costMonthAgg._sum.costUsd ?? 0,
+      publishedThisRange,
+      queuedThisRange,
+      draftsThisRange,
+      inProgressThisRange,
+      costRange: costRangeAgg._sum.costUsd ?? 0,
     },
     recentRuns,
+    filters,
   };
 }
 
@@ -219,8 +300,18 @@ function timeAgo(d: Date): string {
   return `${dy}d ago`;
 }
 
-export default async function HomePage() {
-  const { sites, topSites, series, dayLabels, metrics, recentRuns } = await loadEverything();
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
+  const filters = parseFilters(sp);
+  const { sites, topSites, series, dayLabels, metrics, recentRuns } =
+    await loadEverything(filters);
+
+  const rangeLabel =
+    filters.rangeDays == null ? "all time" : `last ${filters.rangeDays} days`;
 
   return (
     <>
@@ -234,32 +325,7 @@ export default async function HomePage() {
           </>
         }
       >
-        <div className="flex flex-wrap gap-3">
-          <FilterSelect
-            label="Site"
-            options={[
-              { value: "all", label: "All sites" },
-              ...sites.map((s) => ({ value: String(s.id), label: s.name })),
-            ]}
-          />
-          <FilterSelect
-            label="Status"
-            options={[
-              { value: "all", label: "All statuses" },
-              { value: "published", label: "Published" },
-              { value: "draft", label: "Drafts" },
-              { value: "needs_review", label: "Needs review" },
-            ]}
-          />
-          <FilterSelect
-            label="Range"
-            options={[
-              { value: "30", label: "Last 30 days" },
-              { value: "7", label: "Last 7 days" },
-              { value: "all", label: "All time" },
-            ]}
-          />
-        </div>
+        <DashboardFilters sites={sites.map((s) => ({ id: s.id, name: s.name }))} />
       </Hero>
 
       {/* 6-tile metric row */}
@@ -276,8 +342,8 @@ export default async function HomePage() {
           value={metrics.published}
           tone="green"
           trend={
-            metrics.publishedThisMonth > 0
-              ? `+${metrics.publishedThisMonth} this month`
+            metrics.publishedThisRange > 0
+              ? `+${metrics.publishedThisRange} ${rangeLabel}`
               : undefined
           }
           icon={<CheckCircleIcon size={18} />}
@@ -287,8 +353,8 @@ export default async function HomePage() {
           value={metrics.queued}
           tone="amber"
           trend={
-            metrics.queuedThisMonth > 0
-              ? `+${metrics.queuedThisMonth} this month`
+            metrics.queuedThisRange > 0
+              ? `+${metrics.queuedThisRange} ${rangeLabel}`
               : undefined
           }
           icon={<ClockIcon size={18} />}
@@ -298,8 +364,8 @@ export default async function HomePage() {
           value={metrics.inProgress}
           tone="blue"
           trend={
-            metrics.inProgressThisMonth > 0
-              ? `+${metrics.inProgressThisMonth} this month`
+            metrics.inProgressThisRange > 0
+              ? `+${metrics.inProgressThisRange} ${rangeLabel}`
               : undefined
           }
           icon={<SpinIcon size={18} />}
@@ -309,15 +375,15 @@ export default async function HomePage() {
           value={metrics.drafts}
           tone="violet"
           trend={
-            metrics.draftsThisMonth > 0
-              ? `+${metrics.draftsThisMonth} this month`
+            metrics.draftsThisRange > 0
+              ? `+${metrics.draftsThisRange} ${rangeLabel}`
               : undefined
           }
           icon={<TrendUpIcon size={18} />}
         />
         <IconStatTile
-          label="Cost · Month"
-          value={`$${metrics.costMonth.toFixed(2)}`}
+          label={`Cost · ${rangeLabel}`}
+          value={`$${metrics.costRange.toFixed(2)}`}
           tone="cyan"
           icon={<EyeIcon size={18} />}
         />
@@ -329,8 +395,8 @@ export default async function HomePage() {
           className="xl:col-span-8"
           title="Content Pipeline Overview"
           right={
-            <div className="text-xs text-muted bg-surface border border-border rounded-lg px-3 py-1.5">
-              Last 30 days ▾
+            <div className="text-xs text-muted bg-surface border border-border rounded-lg px-3 py-1.5 capitalize">
+              {rangeLabel}
             </div>
           }
         >

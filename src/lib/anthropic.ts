@@ -149,11 +149,13 @@ export async function generateArticle(
   keyword: string,
   intent: string,
   site: SiteContext,
+  serpContext?: string | null,
 ): Promise<GeneratedArticle> {
   const parts: string[] = [`Keyword: ${keyword}`, `Search intent: ${intent}`];
   if (site.niche) parts.push(`Site niche: ${site.niche}`);
   if (site.audience) parts.push(`Target audience: ${site.audience}`);
   if (site.expertVoice) parts.push(`Expert voice / perspective:\n${site.expertVoice}`);
+  if (serpContext) parts.push(`\n${serpContext}`);
   parts.push("\nWrite the article. Return only the JSON object.");
 
   const resp = await getClient().messages.create({

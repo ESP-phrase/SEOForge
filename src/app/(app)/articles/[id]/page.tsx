@@ -29,6 +29,16 @@ export default async function ArticlePage({
   const { saved, published, error } = await searchParams;
   const categories = JSON.parse(article.categoriesJson) as string[];
   const tags = JSON.parse(article.tagsJson) as string[];
+  type SerpSnapshot = {
+    keyword: string;
+    topResults: { position: number; title: string; link: string; domain: string; snippet: string }[];
+    peopleAlsoAsk: string[];
+    relatedSearches: string[];
+    fetchedAt: string | Date;
+  };
+  const serp: SerpSnapshot | null = article.serpJson
+    ? (JSON.parse(article.serpJson) as SerpSnapshot)
+    : null;
 
   const saveHtml = saveArticleHtmlAction.bind(null, articleId);
   const saveMeta = saveArticleMetaAction.bind(null, articleId);
@@ -71,6 +81,53 @@ export default async function ArticlePage({
         <div className="bg-[rgba(255,84,112,0.12)] text-danger border border-[rgba(255,84,112,0.3)] rounded-lg px-3.5 py-2.5 mb-4 text-sm">
           {error.replace(/-/g, " ")}
         </div>
+      ) : null}
+
+      {serp ? (
+        <Card>
+          <CardTitle
+            title="SERP gap analysis"
+            desc={`Top ${serp.topResults.length} competitors for "${serp.keyword}" — used to steer the article`}
+          />
+          <table className="w-full text-sm">
+            <thead>
+              <tr>
+                <th className="text-muted text-[0.7rem] uppercase tracking-wider font-semibold py-2.5 px-3 text-left border-b border-border">#</th>
+                <th className="text-muted text-[0.7rem] uppercase tracking-wider font-semibold py-2.5 px-3 text-left border-b border-border">Domain</th>
+                <th className="text-muted text-[0.7rem] uppercase tracking-wider font-semibold py-2.5 px-3 text-left border-b border-border">Title</th>
+              </tr>
+            </thead>
+            <tbody>
+              {serp.topResults.slice(0, 8).map((r) => (
+                <tr key={r.position} className="border-b border-border last:border-0">
+                  <td className="py-2.5 px-3 text-muted text-xs">{r.position}</td>
+                  <td className="py-2.5 px-3 text-muted text-xs whitespace-nowrap">{r.domain}</td>
+                  <td className="py-2.5 px-3">
+                    <a href={r.link} target="_blank" rel="noreferrer" className="text-text hover:text-accent">
+                      {r.title}
+                    </a>
+                    <div className="text-muted text-xs mt-0.5 line-clamp-2">{r.snippet}</div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {serp.peopleAlsoAsk.length > 0 ? (
+            <div className="mt-4">
+              <div className="text-[0.7rem] uppercase tracking-wider text-muted font-semibold mb-2">
+                People also ask
+              </div>
+              <ul className="text-sm text-text space-y-1">
+                {serp.peopleAlsoAsk.slice(0, 6).map((q) => (
+                  <li key={q} className="flex gap-2">
+                    <span className="text-accent">·</span>
+                    <span>{q}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </Card>
       ) : null}
 
       <Card>

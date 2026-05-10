@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 import { generateArticle } from "@/lib/anthropic";
 import { publish, type SiteCreds, type PublishStatus } from "@/lib/wordpress";
 import { addInternalLinks } from "@/lib/linker";
+import { fetchSerp, serpToPromptContext, type SerpAnalysis } from "@/lib/serp";
 
 export type RunResult = {
   ok: boolean;
@@ -72,15 +73,30 @@ export async function runOneForSite(
 
   await prisma.keyword.update({ where: { id: kw.id }, data: { status: "processing" } });
 
+  // SERP gap analysis — best-effort. If SerpApi fails or no key is set, fall
+  // back to a regular (no-context) generation rather than failing the run.
+  let serp: SerpAnalysis | null = null;
+  try {
+    serp = await fetchSerp(kw.keyword);
+  } catch (e) {
+    console.warn("[runner] SerpApi failed, generating without competitive context:", e);
+  }
+  const serpContext = serpToPromptContext(serp);
+
   let article;
   try {
-    article = await generateArticle(kw.keyword, kw.intent, {
-      name: site.name,
-      niche: site.niche,
-      audience: site.audience,
-      expertVoice: site.expertVoice,
-      authorBioHtml: site.authorBioHtml,
-    });
+    article = await generateArticle(
+      kw.keyword,
+      kw.intent,
+      {
+        name: site.name,
+        niche: site.niche,
+        audience: site.audience,
+        expertVoice: site.expertVoice,
+        authorBioHtml: site.authorBioHtml,
+      },
+      serpContext,
+    );
   } catch (e) {
     await prisma.keyword.update({ where: { id: kw.id }, data: { status: "failed" } });
     await prisma.run.update({
@@ -142,6 +158,7 @@ export async function runOneForSite(
       inputTokens: article.input_tokens,
       outputTokens: article.output_tokens,
       costUsd: article.cost_usd,
+      serpJson: serp ? JSON.stringify(serp) : null,
     },
   });
 

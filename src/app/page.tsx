@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth, hasUsers } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { LinkButton } from "@/components/Button";
 import { SparkIcon } from "@/components/Icons";
-import { BrandMark } from "@/components/BrandMark";
 import { DashboardMockup } from "@/components/landing/DashboardMockup";
+import { MarketingHeader } from "@/components/marketing/MarketingHeader";
+import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 
 export const dynamic = "force-dynamic";
 
@@ -12,33 +13,10 @@ export default async function LandingPage() {
   // If they're already signed in, send them straight to the dashboard.
   const session = await auth();
   if (session?.user) redirect("/dashboard");
-  // Silence the now-unused import warning (kept for parity with prior signin redirect logic)
-  void hasUsers;
 
   return (
     <div className="min-h-screen bg-bg text-text">
-      {/* Top nav */}
-      <header className="border-b border-border/60 backdrop-blur sticky top-0 z-40 bg-bg/85">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-4 flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2.5 font-extrabold text-lg no-underline">
-            <BrandMark size={36} className="shadow-glow" />
-            <span>SEOForge</span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-7 ml-6 text-sm text-muted">
-            <a href="#features" className="hover:text-text no-underline">Features</a>
-            <a href="#pricing" className="hover:text-text no-underline">Pricing</a>
-            <a href="#testimonials" className="hover:text-text no-underline">Testimonials</a>
-            <a href="#docs" className="hover:text-text no-underline">Docs</a>
-            <a href="#blog" className="hover:text-text no-underline">Blog</a>
-          </nav>
-          <div className="ml-auto flex items-center gap-3">
-            <Link href="/login" className="text-sm text-muted hover:text-text no-underline">
-              Sign in
-            </Link>
-            <LinkButton href="/login">Start Free</LinkButton>
-          </div>
-        </div>
-      </header>
+      <MarketingHeader />
 
       {/* Hero */}
       <section className="max-w-[1400px] mx-auto px-6 md:px-10 pt-12 pb-20 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
@@ -400,22 +378,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border">
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-10 flex flex-wrap items-center justify-between gap-6 text-sm text-muted">
-          <div className="flex items-center gap-2.5">
-            <BrandMark size={28} />
-            <span className="font-bold text-text">SEOForge</span>
-            <span className="text-muted-2">© 2026</span>
-          </div>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-text no-underline">Privacy</a>
-            <a href="#" className="hover:text-text no-underline">Terms</a>
-            <a href="#" className="hover:text-text no-underline">Status</a>
-            <a href="#" className="hover:text-text no-underline">Twitter</a>
-          </div>
-        </div>
-      </footer>
+      <MarketingFooter />
     </div>
   );
 }

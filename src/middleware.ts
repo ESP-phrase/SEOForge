@@ -1,7 +1,18 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/api/auth", "/api/cron", "/_next", "/favicon"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/api/auth",
+  "/api/cron",
+  "/_next",
+  "/favicon",
+  "/features",
+  "/pricing",
+  "/testimonials",
+  "/docs",
+  "/blog",
+];
 const PUBLIC_EXACT = new Set(["/"]);
 
 export async function middleware(req: NextRequest) {

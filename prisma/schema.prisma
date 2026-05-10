@@ -56,6 +56,14 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// Cached SerpApi responses — keyed by keyword to avoid burning the free tier.
+// Refreshed when older than the TTL configured in lib/serp.ts.
+model SerpCache {
+  keyword   String   @id
+  json      String
+  fetchedAt DateTime @default(now())
+}
+
 model Site {
   id              Int      @id @default(autoincrement())
   slug            String   @unique
@@ -116,6 +124,7 @@ model Article {
   inputTokens     Int       @default(0)
   outputTokens    Int       @default(0)
   costUsd         Float     @default(0)
+  serpJson        String?   // snapshot of SERP analysis used at generation time
   createdAt       DateTime  @default(now())
   publishedAt     DateTime?
 
