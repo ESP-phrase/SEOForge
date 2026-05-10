@@ -8,3 +8,5 @@ node_modules/
 prisma/.cache/
 prisma/data/
 .claude/
+tsconfig.tsbuildinfo
+next-env.d.ts
