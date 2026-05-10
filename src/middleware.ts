@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/setup", "/api/auth", "/api/cron", "/_next", "/favicon"];
+const PUBLIC_PATHS = ["/login", "/api/auth", "/api/cron", "/_next", "/favicon"];
+const PUBLIC_EXACT = new Set(["/"]);
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  if (PUBLIC_EXACT.has(pathname)) return NextResponse.next();
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) return NextResponse.next();
 
-  // Read the Auth.js session cookie. We can't import Prisma here (edge runtime),
-  // so we just check for the cookie and let server components/actions verify
-  // session validity downstream.
+  // Read the Auth.js session cookie. With database sessions on Auth.js v5 the
+  // cookie name is the same; we just check presence here and let server
+  // components/actions verify validity downstream.
   const sessionCookie =
     req.cookies.get("authjs.session-token") ??
     req.cookies.get("__Secure-authjs.session-token");
@@ -17,7 +19,6 @@ export async function middleware(req: NextRequest) {
   if (!sessionCookie?.value) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
   return NextResponse.next();

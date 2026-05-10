@@ -12,7 +12,7 @@ export default async function NewSitePage({
     <>
       <PageHeader
         title="Add a site"
-        subtitle="Connect a WordPress site so auto-seo can publish to it."
+        subtitle="Connect a WordPress site so SEOForge can publish to it."
       />
       <SiteForm action={createSiteAction} error={error} />
     </>

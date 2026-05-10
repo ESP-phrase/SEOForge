@@ -1,43 +1,33 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/db";
-import { hashPassword, hasUsers, signIn } from "@/lib/auth";
+import { signIn, signOut } from "@/lib/auth";
 
-export async function setupAction(formData: FormData) {
-  if (await hasUsers()) redirect("/login");
-
-  const username = String(formData.get("username") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
-  const password2 = String(formData.get("password2") ?? "");
-
-  if (username.length < 3) {
-    redirect(`/setup?error=${encodeURIComponent("Username must be at least 3 characters.")}`);
+export async function sendMagicLinkAction(formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!email || !email.includes("@")) {
+    redirect(`/login?error=${encodeURIComponent("Enter a valid email.")}`);
   }
-  if (password.length < 8) {
-    redirect(`/setup?error=${encodeURIComponent("Password must be at least 8 characters.")}`);
+  try {
+    // signIn with the resend (email) provider returns a redirect URL Next.js
+    // server actions follow automatically. We pass redirectTo so a successful
+    // verification lands on /dashboard.
+    await signIn("resend", {
+      email,
+      redirect: false,
+      redirectTo: "/dashboard",
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Could not send link.";
+    if (msg.toLowerCase().includes("accessdenied")) {
+      redirect(`/login?error=${encodeURIComponent("That email is not allowed to sign in.")}`);
+    }
+    redirect(`/login?error=${encodeURIComponent(msg)}`);
   }
-  if (password !== password2) {
-    redirect(`/setup?error=${encodeURIComponent("Passwords do not match.")}`);
-  }
-
-  await prisma.user.create({
-    data: { username, passwordHash: await hashPassword(password) },
-  });
-
-  await signIn("credentials", { username, password, redirect: false });
-  redirect("/");
+  redirect(`/login/check?email=${encodeURIComponent(email)}`);
 }
 
-export async function signInAction(formData: FormData) {
-  const username = String(formData.get("username") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
-  const next = String(formData.get("next") ?? "/");
-
-  try {
-    await signIn("credentials", { username, password, redirect: false });
-  } catch {
-    redirect(`/login?error=1&next=${encodeURIComponent(next)}`);
-  }
-  redirect(next.startsWith("/") ? next : "/");
+export async function signOutAction() {
+  await signOut({ redirect: false });
+  redirect("/login");
 }

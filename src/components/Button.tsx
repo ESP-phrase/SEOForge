@@ -4,7 +4,8 @@ type Variant = "primary" | "secondary" | "danger";
 type Size = "md" | "lg";
 
 const VARIANT: Record<Variant, string> = {
-  primary: "bg-accent text-black hover:brightness-110",
+  primary:
+    "bg-accent-grad text-[#0a1428] hover:brightness-110 shadow-glow",
   secondary:
     "bg-surface-2 text-text border border-border-strong hover:bg-surface-3",
   danger: "bg-danger text-white hover:brightness-110",
@@ -16,7 +17,7 @@ const SIZE: Record<Size, string> = {
 };
 
 function classes(variant: Variant, size: Size, full?: boolean): string {
-  return `inline-flex items-center justify-center gap-2 rounded-lg font-bold transition-all active:scale-[0.985] ${VARIANT[variant]} ${SIZE[size]} ${full ? "w-full" : ""}`;
+  return `inline-flex items-center justify-center gap-2 rounded-lg font-bold transition-all active:scale-[0.985] no-underline ${VARIANT[variant]} ${SIZE[size]} ${full ? "w-full" : ""}`;
 }
 
 export function Button({
@@ -59,7 +60,7 @@ export function LinkButton({
     <Link
       href={href}
       target={target}
-      className={`${classes(variant, size, full)} ${className} no-underline`}
+      className={`${classes(variant, size, full)} ${className}`}
     >
       {children}
     </Link>

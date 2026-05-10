@@ -8,32 +8,39 @@
 
 html, body {
   background: #000;
-  color: #f1f1f1;
+  color: #f3f3f3;
   -webkit-font-smoothing: antialiased;
   font-size: 14px;
 }
 
-::selection {
-  background: rgba(196, 242, 78, 0.3);
+body {
+  background-image:
+    radial-gradient(900px 600px at 90% -5%, rgba(190, 248, 72, 0.06), transparent 60%),
+    radial-gradient(700px 500px at -10% 110%, rgba(190, 248, 72, 0.04), transparent 60%);
 }
 
-/* Form-element resets to match the dark/lime theme */
+::selection {
+  background: rgba(190, 248, 72, 0.35);
+  color: #000;
+}
+
 input, select, textarea {
-  background: #000;
-  color: #f1f1f1;
-  border: 1px solid #2a2a2a;
-  border-radius: 9px;
-  padding: 0.65rem 0.85rem;
+  background: #0a0a0a;
+  color: #f3f3f3;
+  border: 1px solid #262626;
+  border-radius: 10px;
+  padding: 0.7rem 0.95rem;
   width: 100%;
   font: inherit;
-  transition: border-color 120ms;
+  transition: border-color 150ms, box-shadow 150ms;
 }
 input:focus, select:focus, textarea:focus {
   outline: none;
-  border-color: #c4f24e;
+  border-color: #bef848;
+  box-shadow: 0 0 0 3px rgba(190, 248, 72, 0.15);
 }
 input::placeholder, textarea::placeholder {
-  color: #5a5a5a;
+  color: #525252;
 }
 textarea {
   min-height: 9rem;
@@ -41,12 +48,31 @@ textarea {
   resize: vertical;
 }
 
-/* Article preview rendered styles (used inside dangerouslySetInnerHTML) */
-.article-html h2 { font-size: 1.4rem; font-weight: 700; margin: 1.75rem 0 0.6rem; color: #f1f1f1; }
-.article-html h3 { font-size: 1.05rem; font-weight: 700; margin: 1.25rem 0 0.4rem; color: #f1f1f1; }
-.article-html p { margin: 0.6rem 0; line-height: 1.7; color: #d6d6d6; }
-.article-html ul, .article-html ol { margin: 0.6rem 0 0.6rem 1.4rem; line-height: 1.7; color: #d6d6d6; }
+/* Filter dropdown — small icon + label + select inside a rounded surface */
+select.filter-input,
+input.filter-input {
+  background: #0c0c0c;
+  border: 1px solid #1a1a1a;
+  border-radius: 12px;
+  padding: 0.6rem 2.25rem 0.6rem 2.25rem;
+  appearance: none;
+  background-image:
+    url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237a7a7a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+}
+
+.article-html h2 { font-size: 1.4rem; font-weight: 700; margin: 1.75rem 0 0.6rem; color: #f3f3f3; }
+.article-html h3 { font-size: 1.05rem; font-weight: 700; margin: 1.25rem 0 0.4rem; color: #f3f3f3; }
+.article-html p { margin: 0.6rem 0; line-height: 1.7; color: #c8c8c8; }
+.article-html ul, .article-html ol { margin: 0.6rem 0 0.6rem 1.4rem; line-height: 1.7; color: #c8c8c8; }
 .article-html li { margin: 0.2rem 0; }
-.article-html a { color: #c4f24e; }
-.article-html hr { border: 0; border-top: 1px solid #1f1f1f; margin: 1.75rem 0; }
+.article-html a { color: #bef848; }
+.article-html hr { border: 0; border-top: 1px solid #1a1a1a; margin: 1.75rem 0; }
 .article-html .author-bio { color: #7a7a7a; font-size: 0.9rem; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 360ms ease-out both; }
