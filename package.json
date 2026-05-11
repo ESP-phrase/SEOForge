@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "node scripts/select-schema.mjs && prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "db:push": "prisma db push",
+    "db:push:prod": "USE_POSTGRES=1 node scripts/select-schema.mjs && prisma db push",
     "db:studio": "prisma studio",
-    "postinstall": "prisma generate"
+    "postinstall": "node scripts/select-schema.mjs && prisma generate"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.40.0",

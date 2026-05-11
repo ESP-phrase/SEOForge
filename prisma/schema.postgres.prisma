@@ -1,13 +1,17 @@
+// Postgres variant of schema.prisma — used by Vercel builds via
+// scripts/select-schema.mjs (which copies this over schema.prisma when the
+// VERCEL env var is set).
+//
+// Keep this file in sync with schema.prisma EXCEPT for the datasource block.
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  // LOCAL DEV: sqlite. For Vercel deploy, swap provider to "postgresql" and
-  // uncomment directUrl. See README "Deploy to Vercel" section.
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-  // directUrl = env("DIRECT_DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 // Auth.js v5 standard models (cuid string IDs)
@@ -59,17 +63,12 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// Cached SerpApi responses — keyed by keyword to avoid burning the free tier.
-// Refreshed when older than the TTL configured in lib/serp.ts.
 model SerpCache {
   keyword   String   @id
   json      String
   fetchedAt DateTime @default(now())
 }
 
-// Backlink outreach prospects — resource pages, niche blogs, etc. that should
-// link to one of the site's articles. Each row is a single target. The whole
-// pipeline (find → score → draft email → manual send → track) lives off this.
 model OutreachProspect {
   id              Int       @id @default(autoincrement())
   siteId          Int
@@ -78,10 +77,10 @@ model OutreachProspect {
   domain          String
   pageTitle       String
   snippet         String    @default("")
-  searchSeed      String    @default("") // the query that surfaced this prospect
+  searchSeed      String    @default("")
   relevanceScore  Int       @default(50)
   scoreReason     String    @default("")
-  status          String    @default("new") // new | drafted | sent | replied | won | dead
+  status          String    @default("new")
   contactEmail    String?
   draftSubject    String    @default("")
   draftBody       String    @default("")
@@ -103,7 +102,6 @@ model Site {
   name            String
   wpUrl           String
   wpUsername      String
-  // Encrypted with ENCRYPTION_KEY. Never stored in plaintext.
   wpAppPasswordEnc String
   niche           String   @default("")
   audience        String   @default("")
@@ -153,13 +151,12 @@ model Article {
   wpPostId        Int?
   wpUrl           String?
   status          String    @default("draft")
-  // JSON-encoded arrays
   categoriesJson  String    @default("[]")
   tagsJson        String    @default("[]")
   inputTokens     Int       @default(0)
   outputTokens    Int       @default(0)
   costUsd         Float     @default(0)
-  serpJson        String?   // snapshot of SERP analysis used at generation time
+  serpJson        String?
   createdAt       DateTime  @default(now())
   publishedAt     DateTime?
 
