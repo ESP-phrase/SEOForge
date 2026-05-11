@@ -3,11 +3,10 @@ generator client {
 }
 
 datasource db {
-  // LOCAL DEV: sqlite. For Vercel deploy, swap provider to "postgresql" and
-  // uncomment directUrl. See README "Deploy to Vercel" section.
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-  // directUrl = env("DIRECT_DATABASE_URL")
+  // Neon Postgres for both local dev and Vercel production — same DB.
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 // Auth.js v5 standard models (cuid string IDs)

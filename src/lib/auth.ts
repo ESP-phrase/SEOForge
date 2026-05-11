@@ -46,9 +46,10 @@ async function isAllowed(email: string): Promise<boolean> {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  debug: true,
   adapter: PrismaAdapter(prisma),
   session: { strategy: "database", maxAge: 60 * 60 * 24 * 14 }, // 14 days
-  pages: { signIn: "/login", verifyRequest: "/login/check" },
+  pages: { signIn: "/login", verifyRequest: "/login/check", error: "/login" },
   providers: [
     Resend({
       apiKey: process.env.RESEND_API_KEY ?? "",

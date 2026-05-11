@@ -4,18 +4,17 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/select-schema.mjs && prisma generate && next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "db:push": "prisma db push",
-    "db:push:prod": "USE_POSTGRES=1 node scripts/select-schema.mjs && prisma db push",
     "db:studio": "prisma studio",
-    "postinstall": "node scripts/select-schema.mjs && prisma generate"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.40.0",
     "@auth/prisma-adapter": "^2.7.4",
-    "@prisma/client": "^6.0.0",
+    "@prisma/client": "^6.19.3",
     "bcryptjs": "^2.4.3",
     "next": "^15.1.0",
     "next-auth": "5.0.0-beta.25",
