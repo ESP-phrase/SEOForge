@@ -130,6 +130,13 @@ model Site {
   createdAt       DateTime @default(now())
   // Per-site article theme. Hex colors injected as CSS variables into every
   // generated article so headings, callouts, and tables match the site brand.
+  // Customer-facing custom domain (e.g. "blog.theirsite.com") attached to our
+  // Vercel project. Status flow: none → pending (added to Vercel, awaiting DNS)
+  //   → verifying (DNS resolves, SSL provisioning) → live (serving) | error.
+  customDomain       String?  @unique
+  customDomainStatus String   @default("none") // none|pending|verifying|live|error
+  customDomainError  String?
+  customDomainAddedAt DateTime?
   themeAccent     String   @default("#0ea5e9") // primary — H2 border, links, step circles
   themeAccent2    String   @default("#f59e0b") // warm — TL;DR, callouts, key stats
   themeAccent3    String   @default("#22c55e") // success — takeaway callouts, stat boxes

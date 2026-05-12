@@ -9,6 +9,7 @@ import { Card, CardTitle } from "@/components/Card";
 import { Button } from "@/components/Button";
 import { RunWidget } from "@/components/RunWidget";
 import { TestWordPressButton } from "@/components/TestWordPressButton";
+import { CustomDomainPanel } from "@/components/CustomDomainPanel";
 
 export default async function SiteDetailPage({
   params,
@@ -125,10 +126,19 @@ export default async function SiteDetailPage({
         <RunWidget siteId={site.id} />
       </Card>
 
-      <Card>
-        <CardTitle title="Connection" desc="Verify the WordPress credentials work" />
-        <TestWordPressButton siteId={site.id} />
-      </Card>
+      {site.targetType === "wordpress" ? (
+        <Card>
+          <CardTitle title="Connection" desc="Verify the WordPress credentials work" />
+          <TestWordPressButton siteId={site.id} />
+        </Card>
+      ) : null}
+
+      <CustomDomainPanel
+        siteId={site.id}
+        customDomain={site.customDomain}
+        customDomainStatus={site.customDomainStatus}
+        customDomainError={site.customDomainError}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <Card>
