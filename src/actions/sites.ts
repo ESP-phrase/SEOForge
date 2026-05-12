@@ -30,12 +30,20 @@ function getInt(form: FormData, key: string, fallback: number): number {
 export async function createSiteAction(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const slug = slugify(String(formData.get("slug") ?? "") || name);
+  const targetType = String(formData.get("targetType") ?? "wordpress");
   const wpUrl = String(formData.get("wpUrl") ?? "").trim();
   const wpUsername = String(formData.get("wpUsername") ?? "").trim();
   const password = String(formData.get("wpAppPassword") ?? "").trim();
 
-  if (!name || !wpUrl || !wpUsername || !password) {
-    redirect(`/sites/new?error=${encodeURIComponent("All required fields must be filled.")}`);
+  if (!name) {
+    redirect(`/sites/new?error=${encodeURIComponent("Name is required.")}`);
+  }
+  if (targetType === "wordpress" && (!wpUrl || !wpUsername || !password)) {
+    redirect(
+      `/sites/new?error=${encodeURIComponent(
+        "WordPress sites require URL, username, and application password.",
+      )}`,
+    );
   }
 
   try {
@@ -43,9 +51,10 @@ export async function createSiteAction(formData: FormData) {
       data: {
         slug,
         name,
-        wpUrl,
-        wpUsername,
-        wpAppPasswordEnc: encrypt(password),
+        targetType: targetType === "native" ? "native" : "wordpress",
+        wpUrl: targetType === "native" ? "" : wpUrl,
+        wpUsername: targetType === "native" ? "" : wpUsername,
+        wpAppPasswordEnc: targetType === "native" ? "" : encrypt(password),
         niche: String(formData.get("niche") ?? "").trim(),
         audience: String(formData.get("audience") ?? "").trim(),
         expertVoice: String(formData.get("expertVoice") ?? "").trim(),
@@ -71,11 +80,14 @@ export async function createSiteAction(formData: FormData) {
 }
 
 export async function updateSiteAction(siteId: number, formData: FormData) {
+  const targetType = String(formData.get("targetType") ?? "wordpress");
+  const isNative = targetType === "native";
   const data: Record<string, unknown> = {
     name: String(formData.get("name") ?? "").trim(),
     slug: slugify(String(formData.get("slug") ?? "") || String(formData.get("name") ?? "")),
-    wpUrl: String(formData.get("wpUrl") ?? "").trim(),
-    wpUsername: String(formData.get("wpUsername") ?? "").trim(),
+    targetType: isNative ? "native" : "wordpress",
+    wpUrl: isNative ? "" : String(formData.get("wpUrl") ?? "").trim(),
+    wpUsername: isNative ? "" : String(formData.get("wpUsername") ?? "").trim(),
     niche: String(formData.get("niche") ?? "").trim(),
     audience: String(formData.get("audience") ?? "").trim(),
     expertVoice: String(formData.get("expertVoice") ?? "").trim(),
@@ -90,8 +102,12 @@ export async function updateSiteAction(siteId: number, formData: FormData) {
     themeAccent3: getColor(formData, "themeAccent3", "#22c55e"),
     themeAccent4: getColor(formData, "themeAccent4", "#a855f7"),
   };
-  const newPassword = String(formData.get("wpAppPassword") ?? "").trim();
-  if (newPassword) data.wpAppPasswordEnc = encrypt(newPassword);
+  if (isNative) {
+    data.wpAppPasswordEnc = "";
+  } else {
+    const newPassword = String(formData.get("wpAppPassword") ?? "").trim();
+    if (newPassword) data.wpAppPasswordEnc = encrypt(newPassword);
+  }
 
   await prisma.site.update({ where: { id: siteId }, data });
   revalidatePath("/");

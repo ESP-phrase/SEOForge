@@ -20,6 +20,7 @@ type Site = {
   id: number;
   name: string;
   slug: string;
+  targetType?: string;
   wpUrl: string;
   wpUsername: string;
   niche: string;
@@ -56,6 +57,9 @@ export function SiteForm({
   error?: string;
 }) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [target, setTarget] = useState<"wordpress" | "native">(
+    (site?.targetType as "wordpress" | "native") ?? "wordpress",
+  );
   const [accent1, setAccent1] = useState(site?.themeAccent ?? "#0ea5e9");
   const [accent2, setAccent2] = useState(site?.themeAccent2 ?? "#f59e0b");
   const [accent3, setAccent3] = useState(site?.themeAccent3 ?? "#22c55e");
@@ -82,8 +86,10 @@ export function SiteForm({
           </h1>
           <div className="text-muted text-sm mt-0.5">
             {isEdit
-              ? "Update settings or rotate the WP application password."
-              : "Connect a WordPress site so SEOForge can publish to it."}
+              ? target === "native"
+                ? "Update settings, theme, or the custom domain."
+                : "Update settings or rotate the WP application password."
+              : "Pick where SEOForge should publish — a WordPress site or a native blog hosted by us."}
           </div>
         </div>
       </div>
@@ -95,6 +101,58 @@ export function SiteForm({
       ) : null}
 
       <form action={action} className="bg-card-grad border border-border rounded-2xl p-6 shadow-panel">
+        {/* Target type picker */}
+        <input type="hidden" name="targetType" value={target} />
+        <FieldLabel>Where should we publish?</FieldLabel>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+          <button
+            type="button"
+            onClick={() => setTarget("wordpress")}
+            className={`text-left p-4 rounded-xl border-2 transition-colors ${
+              target === "wordpress"
+                ? "border-accent bg-accent-dim"
+                : "border-border bg-surface-2 hover:border-border-strong"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-2xl">📄</span>
+              {target === "wordpress" ? (
+                <span className="text-[0.6rem] font-extrabold uppercase tracking-wider text-accent">
+                  Selected
+                </span>
+              ) : null}
+            </div>
+            <div className="font-bold text-sm text-text mb-0.5">WordPress site</div>
+            <div className="text-muted text-xs leading-snug">
+              Publish to your own WordPress install via the REST API. Requires URL and
+              Application Password.
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setTarget("native")}
+            className={`text-left p-4 rounded-xl border-2 transition-colors ${
+              target === "native"
+                ? "border-accent bg-accent-dim"
+                : "border-border bg-surface-2 hover:border-border-strong"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-2xl">✨</span>
+              {target === "native" ? (
+                <span className="text-[0.6rem] font-extrabold uppercase tracking-wider text-accent">
+                  Selected
+                </span>
+              ) : null}
+            </div>
+            <div className="font-bold text-sm text-text mb-0.5">Native blog (hosted)</div>
+            <div className="text-muted text-xs leading-snug">
+              We host the blog at <code className="text-text">/blog/&lt;slug&gt;</code> or your
+              custom domain. No credentials needed.
+            </div>
+          </button>
+        </div>
+
         {/* Name (required) */}
         <FieldLabel required>Name</FieldLabel>
         <IconInput
@@ -115,42 +173,58 @@ export function SiteForm({
           leftIcon={<LinkIcon size={18} />}
         />
 
-        {/* WP URL + WP Username row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
-          <div>
-            <FieldLabel required>WordPress URL</FieldLabel>
-            <IconInput
-              name="wpUrl"
-              type="url"
-              required
-              defaultValue={site?.wpUrl}
-              placeholder="https://example.com"
-              leftIcon={<GlobeIcon size={18} />}
-            />
-          </div>
-          <div>
-            <FieldLabel>WP Username</FieldLabel>
-            <IconInput
-              name="wpUsername"
-              required
-              defaultValue={site?.wpUsername}
-              placeholder="e.g. admin"
-              leftIcon={<UserIcon size={18} />}
-            />
-          </div>
-        </div>
+        {target === "wordpress" ? (
+          <>
+            {/* WP URL + WP Username row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+              <div>
+                <FieldLabel required>WordPress URL</FieldLabel>
+                <IconInput
+                  name="wpUrl"
+                  type="url"
+                  required
+                  defaultValue={site?.wpUrl}
+                  placeholder="https://example.com"
+                  leftIcon={<GlobeIcon size={18} />}
+                />
+              </div>
+              <div>
+                <FieldLabel>WP Username</FieldLabel>
+                <IconInput
+                  name="wpUsername"
+                  required
+                  defaultValue={site?.wpUsername}
+                  placeholder="e.g. admin"
+                  leftIcon={<UserIcon size={18} />}
+                />
+              </div>
+            </div>
 
-        {/* WP App Password (required, password type) */}
-        <FieldLabel required hint="WP Admin → Users → Profile → Application Passwords">
-          WP Application Password
-        </FieldLabel>
-        <IconInput
-          name="wpAppPassword"
-          password
-          required={!isEdit}
-          placeholder={isEdit ? "Leave blank to keep existing" : "Enter your application password"}
-          leftIcon={<LockIcon size={18} />}
-        />
+            {/* WP App Password (required, password type) */}
+            <FieldLabel required hint="WP Admin → Users → Profile → Application Passwords">
+              WP Application Password
+            </FieldLabel>
+            <IconInput
+              name="wpAppPassword"
+              password
+              required={!isEdit}
+              placeholder={isEdit ? "Leave blank to keep existing" : "Enter your application password"}
+              leftIcon={<LockIcon size={18} />}
+            />
+          </>
+        ) : (
+          <div className="bg-accent-dim border border-accent-border rounded-xl p-4 mt-2 mb-4 flex gap-3">
+            <span className="text-2xl">✨</span>
+            <div>
+              <div className="font-bold text-sm text-text mb-0.5">Native hosting — nothing to set up</div>
+              <div className="text-muted text-xs leading-snug">
+                Your posts go live at <code className="text-text">/blog/&lt;slug&gt;</code>{" "}
+                immediately. After saving, you can attach a custom domain like{" "}
+                <code className="text-text">blog.yoursite.com</code> from the site page.
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Niche + Audience row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
@@ -324,7 +398,8 @@ export function SiteForm({
           </div>
         ) : null}
 
-        {/* Security banner */}
+        {/* Security banner — only relevant when WP credentials are involved */}
+        {target === "wordpress" ? (
         <div className="mt-6 bg-bg-2/60 border border-border rounded-xl px-4 py-3 flex flex-wrap items-center gap-3 justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-accent-dim text-accent border border-accent-border grid place-items-center shrink-0">
@@ -344,6 +419,7 @@ export function SiteForm({
             Secure &amp; Encrypted
           </span>
         </div>
+        ) : null}
 
         {/* Buttons */}
         <div className="flex items-center justify-between gap-3 mt-6">
@@ -355,7 +431,7 @@ export function SiteForm({
           </LinkButton>
           <Button type="submit">
             <LinkIcon size={14} />
-            {isEdit ? "Save site" : "Connect Site"}
+            {isEdit ? "Save site" : target === "native" ? "Create blog" : "Connect Site"}
           </Button>
         </div>
       </form>
