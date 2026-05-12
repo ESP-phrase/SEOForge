@@ -114,6 +114,13 @@ model Site {
   publishStatus   String   @default("draft")
   active          Boolean  @default(true)
   createdAt       DateTime @default(now())
+  // Google Search Console integration. Refresh token is encrypted with
+  // ENCRYPTION_KEY (same scheme as wpAppPasswordEnc). gscSiteUrl is the exact
+  // property URL registered in Search Console (e.g. "sc-domain:example.com"
+  // or "https://example.com/").
+  gscRefreshTokenEnc String?
+  gscSiteUrl         String?
+  gscConnectedAt     DateTime?
 
   keywords Keyword[]
   articles Article[]

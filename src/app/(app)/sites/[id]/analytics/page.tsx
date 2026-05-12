@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/PageHeader";
 import { Panel } from "@/components/Panel";
+import { getRefreshToken, queryAnalytics, ymd, type GscRow } from "@/lib/gsc";
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +62,51 @@ export default async function SiteAnalyticsPage({ params }: { params: Promise<{ 
   for (const v of daily) {
     const idx = Math.floor((startOfDayUTC(v.createdAt).getTime() - startBucket) / (24 * 3600 * 1000));
     if (idx >= 0 && idx < 30) buckets[idx]++;
+  }
+
+  // ── Google Search Console (if connected) ──
+  const refreshToken = getRefreshToken(site);
+  const gscSiteUrl = site.gscSiteUrl ?? "";
+  let gscTotals: { clicks: number; impressions: number; ctr: number; position: number } | null = null;
+  let gscTopQueries: GscRow[] = [];
+  let gscTopPages: GscRow[] = [];
+  let gscError: string | null = null;
+  if (refreshToken && gscSiteUrl) {
+    const startDate = ymd(new Date(Date.now() - 30 * 24 * 3600 * 1000));
+    const endDate = ymd(new Date());
+    try {
+      const [totals, queries, pages] = await Promise.all([
+        queryAnalytics({ refreshToken, siteUrl: gscSiteUrl, startDate, endDate, dimensions: [] }),
+        queryAnalytics({
+          refreshToken,
+          siteUrl: gscSiteUrl,
+          startDate,
+          endDate,
+          dimensions: ["query"],
+          rowLimit: 20,
+        }),
+        queryAnalytics({
+          refreshToken,
+          siteUrl: gscSiteUrl,
+          startDate,
+          endDate,
+          dimensions: ["page"],
+          rowLimit: 20,
+        }),
+      ]);
+      if (totals[0]) {
+        gscTotals = {
+          clicks: totals[0].clicks,
+          impressions: totals[0].impressions,
+          ctr: totals[0].ctr,
+          position: totals[0].position,
+        };
+      }
+      gscTopQueries = queries;
+      gscTopPages = pages;
+    } catch (e) {
+      gscError = e instanceof Error ? e.message : "GSC query failed";
+    }
   }
 
   const aIds = topArticles.map((r) => r.articleId!).filter(Boolean);
@@ -147,6 +193,131 @@ export default async function SiteAnalyticsPage({ params }: { params: Promise<{ 
           </svg>
         )}
       </Panel>
+
+      {/* Google Search Console — 30d */}
+      {refreshToken ? (
+        <>
+          <Panel
+            title="Google Search Console — last 30 days"
+            subtitle={
+              gscError
+                ? `Error: ${gscError}`
+                : gscSiteUrl
+                  ? `Property: ${gscSiteUrl}`
+                  : "Not connected"
+            }
+            className="mb-4"
+          >
+            {gscTotals ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <div className="text-muted text-xs uppercase tracking-wide mb-1">Clicks</div>
+                  <div className="text-3xl font-extrabold text-accent">{fmt(gscTotals.clicks)}</div>
+                </div>
+                <div>
+                  <div className="text-muted text-xs uppercase tracking-wide mb-1">Impressions</div>
+                  <div className="text-3xl font-extrabold text-text">{fmt(gscTotals.impressions)}</div>
+                </div>
+                <div>
+                  <div className="text-muted text-xs uppercase tracking-wide mb-1">CTR</div>
+                  <div className="text-3xl font-extrabold text-text">
+                    {(gscTotals.ctr * 100).toFixed(1)}%
+                  </div>
+                </div>
+                <div>
+                  <div className="text-muted text-xs uppercase tracking-wide mb-1">Avg position</div>
+                  <div className="text-3xl font-extrabold text-text">
+                    {gscTotals.position.toFixed(1)}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-muted text-sm">No GSC data in the last 30 days.</p>
+            )}
+          </Panel>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <Panel title="Top queries · 30 days">
+              {gscTopQueries.length === 0 ? (
+                <p className="text-muted text-sm">No query data.</p>
+              ) : (
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-left text-muted uppercase border-b border-border">
+                      <th className="py-2">Query</th>
+                      <th className="py-2 text-right">Clicks</th>
+                      <th className="py-2 text-right">Impr.</th>
+                      <th className="py-2 text-right">Pos.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {gscTopQueries.map((r, i) => (
+                      <tr key={i} className="border-b border-border/40">
+                        <td className="py-1.5 text-text">{r.keys[0]}</td>
+                        <td className="py-1.5 text-right font-bold text-accent">{r.clicks}</td>
+                        <td className="py-1.5 text-right text-muted">{fmt(r.impressions)}</td>
+                        <td className="py-1.5 text-right text-muted">{r.position.toFixed(1)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </Panel>
+            <Panel title="Top landing pages · 30 days">
+              {gscTopPages.length === 0 ? (
+                <p className="text-muted text-sm">No page data.</p>
+              ) : (
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-left text-muted uppercase border-b border-border">
+                      <th className="py-2">Page</th>
+                      <th className="py-2 text-right">Clicks</th>
+                      <th className="py-2 text-right">Impr.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {gscTopPages.map((r, i) => {
+                      let label = r.keys[0];
+                      try {
+                        label = new URL(r.keys[0]).pathname;
+                      } catch {}
+                      return (
+                        <tr key={i} className="border-b border-border/40">
+                          <td className="py-1.5 text-text truncate max-w-[200px]">
+                            <a
+                              href={r.keys[0]}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="hover:text-accent no-underline"
+                            >
+                              {label}
+                            </a>
+                          </td>
+                          <td className="py-1.5 text-right font-bold text-accent">{r.clicks}</td>
+                          <td className="py-1.5 text-right text-muted">{fmt(r.impressions)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </Panel>
+          </div>
+        </>
+      ) : (
+        <Panel
+          title="Connect Google Search Console"
+          subtitle="See real search data: impressions, clicks, ranking positions, and the queries driving traffic."
+          className="mb-4"
+        >
+          <a
+            href={`/api/gsc/connect?siteId=${siteId}`}
+            className="inline-block px-4 py-2 bg-accent text-black rounded-lg text-sm font-semibold no-underline"
+          >
+            Connect Google
+          </a>
+        </Panel>
+      )}
 
       <Panel title="Top articles · 30 days" className="mb-4">
         {topArticles.length === 0 ? (

@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/PageHeader";
 import { Panel } from "@/components/Panel";
 import { LinkButton } from "@/components/Button";
+import { getRefreshToken, isGscConfigured, queryAnalytics, ymd } from "@/lib/gsc";
+import { disconnectGscAction } from "@/actions/gsc";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +37,15 @@ export default async function AnalyticsHubPage() {
   const sites = await prisma.site.findMany({
     where: { active: true },
     orderBy: { name: "asc" },
-    select: { id: true, name: true, wpUrl: true, slug: true },
+    select: {
+      id: true,
+      name: true,
+      wpUrl: true,
+      slug: true,
+      gscRefreshTokenEnc: true,
+      gscSiteUrl: true,
+      gscConnectedAt: true,
+    },
   });
 
   const now = new Date();
@@ -350,6 +360,83 @@ export default async function AnalyticsHubPage() {
           )}
         </Panel>
       </div>
+
+      {/* Google Search Console */}
+      <Panel
+        title="Google Search Console"
+        subtitle="Real search data from Google — impressions, clicks, queries, average position."
+        className="mb-4"
+      >
+        {!isGscConfigured() ? (
+          <div className="text-sm">
+            <p className="text-muted mb-3">
+              GSC integration not configured. Set <code className="text-text">GOOGLE_CLIENT_ID</code>{" "}
+              and <code className="text-text">GOOGLE_CLIENT_SECRET</code> in your env vars to enable.
+            </p>
+            <details className="text-muted text-xs">
+              <summary className="cursor-pointer text-text">How to get these (5 min, free)</summary>
+              <ol className="list-decimal ml-5 mt-2 space-y-1">
+                <li>Go to <a href="https://console.cloud.google.com" target="_blank" rel="noreferrer" className="text-accent hover:underline">console.cloud.google.com</a> and create a project.</li>
+                <li>APIs &amp; Services → Library → enable <b>Google Search Console API</b>.</li>
+                <li>OAuth consent screen → External → fill app name + your email → add scope <code>webmasters.readonly</code> → add yourself as a test user.</li>
+                <li>Credentials → Create Credentials → OAuth client ID → Web application. Authorized redirect URI: <code className="text-text">{(process.env.NEXT_PUBLIC_APP_URL ?? "https://seoforge.org").replace(/\/$/, "")}/api/gsc/callback</code></li>
+                <li>Copy Client ID + Secret → set as Vercel env vars and redeploy.</li>
+              </ol>
+            </details>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {sites.map((s) => {
+              const connected = !!s.gscRefreshTokenEnc;
+              return (
+                <div
+                  key={s.id}
+                  className="flex items-center justify-between gap-3 p-3 bg-surface-2 border border-border rounded-lg"
+                >
+                  <div className="min-w-0">
+                    <div className="font-semibold text-text truncate">{s.name}</div>
+                    <div className="text-muted text-xs truncate">
+                      {connected ? (
+                        <>
+                          Connected · <span className="text-text">{s.gscSiteUrl}</span>
+                        </>
+                      ) : (
+                        s.wpUrl
+                      )}
+                    </div>
+                  </div>
+                  {connected ? (
+                    <div className="flex gap-2">
+                      <Link
+                        href={`/sites/${s.id}/analytics`}
+                        className="px-3 py-1.5 text-xs font-semibold bg-accent text-black rounded-lg no-underline"
+                      >
+                        View data →
+                      </Link>
+                      <form action={disconnectGscAction}>
+                        <input type="hidden" name="siteId" value={s.id} />
+                        <button
+                          type="submit"
+                          className="px-3 py-1.5 text-xs font-semibold border border-border rounded-lg text-muted hover:text-text hover:bg-surface"
+                        >
+                          Disconnect
+                        </button>
+                      </form>
+                    </div>
+                  ) : (
+                    <a
+                      href={`/api/gsc/connect?siteId=${s.id}`}
+                      className="px-3 py-1.5 text-xs font-semibold bg-accent text-black rounded-lg no-underline whitespace-nowrap"
+                    >
+                      Connect Google
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Panel>
 
       {/* Snippet to install */}
       <Panel
