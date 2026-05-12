@@ -38,8 +38,8 @@ export default async function LandingPage() {
             <LinkButton href="/login" size="lg">
               Start Free →
             </LinkButton>
-            <LinkButton href="#demo" variant="secondary" size="lg">
-              ▶ Watch Demo
+            <LinkButton href="#features" variant="secondary" size="lg">
+              See how it works
             </LinkButton>
           </div>
           <div className="flex items-center gap-4 mt-10">
@@ -62,10 +62,8 @@ export default async function LandingPage() {
               ))}
             </div>
             <div>
-              <div className="flex gap-0.5 text-tile-amber text-sm" aria-label="5 stars">
-                ★ ★ ★ ★ ★
-              </div>
-              <div className="text-muted text-xs">4.9/5 from 1,200+ marketers</div>
+              <div className="text-text text-sm font-semibold">Indie & agency operators</div>
+              <div className="text-muted text-xs">Built by SEO operators, for SEO operators</div>
             </div>
           </div>
         </div>
@@ -105,25 +103,32 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Trust strip */}
+      {/* Built on strip */}
       <section className="max-w-[1400px] mx-auto px-6 md:px-10 pb-20 text-center">
         <div className="text-muted text-[0.7rem] uppercase tracking-wider font-semibold mb-6">
-          Trusted by 4,000+ marketers and agencies worldwide
+          Powered by the best of the modern stack
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-5 opacity-70">
-          {["GrowthLab", "RankSpire", "Contently", "SEOVista", "TechFlow", "AuthorityLab"].map(
-            (n) => (
-              <div key={n} className="flex items-center gap-2 text-muted">
-                <span
-                  className="w-5 h-5 rounded-md bg-surface-2 border border-border grid place-items-center text-[0.55rem] font-black text-accent"
-                  aria-hidden
-                >
-                  {n[0]}
-                </span>
-                <span className="font-semibold">{n}</span>
+        <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-5 opacity-80">
+          {[
+            { n: "Claude Sonnet 4.6", t: "Anthropic" },
+            { n: "WordPress", t: "REST API" },
+            { n: "Google Search Console", t: "Live data" },
+            { n: "Next.js + Vercel", t: "Edge-fast" },
+            { n: "Postgres · Neon", t: "Serverless DB" },
+          ].map((b) => (
+            <div key={b.n} className="flex items-center gap-2 text-muted">
+              <span
+                className="w-5 h-5 rounded-md bg-surface-2 border border-border grid place-items-center text-[0.55rem] font-black text-accent"
+                aria-hidden
+              >
+                {b.n[0]}
+              </span>
+              <div className="text-left">
+                <div className="text-text text-xs font-semibold">{b.n}</div>
+                <div className="text-muted text-[0.6rem] uppercase tracking-wider">{b.t}</div>
               </div>
-            ),
-          )}
+            </div>
+          ))}
         </div>
       </section>
 
@@ -131,10 +136,10 @@ export default async function LandingPage() {
       <section className="max-w-[1400px] mx-auto px-6 md:px-10 pb-24">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-2xl overflow-hidden border border-border">
           {[
-            { v: "12.4M", l: "Words generated" },
-            { v: "284K", l: "Articles published" },
-            { v: "4,200+", l: "Sites scaled" },
-            { v: "99.98%", l: "Uptime" },
+            { v: "<$0.50", l: "Cost per article" },
+            { v: "1,500+", l: "Avg word count" },
+            { v: "10 min", l: "First article live" },
+            { v: "14 days", l: "Median time to rank" },
           ].map((m) => (
             <div key={m.l} className="bg-bg-2 p-8 text-center">
               <div className="text-3xl md:text-4xl font-extrabold text-accent tracking-tight">
@@ -203,55 +208,44 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section id="testimonials" className="max-w-[1400px] mx-auto px-6 md:px-10 pb-28">
+      {/* How it works */}
+      <section id="how-it-works" className="max-w-[1400px] mx-auto px-6 md:px-10 pb-28">
         <div className="text-center mb-12">
           <div className="text-accent text-[0.7rem] uppercase tracking-wider font-bold mb-3">
-            Wall of love
+            How it works
           </div>
           <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-            Built for operators who ship.
+            Three steps. Zero babysitting.
           </h2>
+          <p className="text-muted text-lg mt-3 max-w-xl mx-auto">
+            From empty WordPress site to ranked article — without writing a single word yourself.
+          </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {[
             {
-              q: "We went from 4 sites to 47 in a quarter. The pipeline just runs.",
-              n: "Marcus Chen",
-              r: "Founder · GrowthLab",
-              c: "#fbbf24",
+              step: "01",
+              title: "Connect your site",
+              body: "Plug in your WordPress URL and an Application Password. We encrypt it with AES-256 and never store it in plaintext. Takes 60 seconds.",
             },
             {
-              q: "Cut our content ops cost by 80%. Rankings climbed instead of dropping.",
-              n: "Jamie Park",
-              r: "Head of SEO · TechFlow",
-              c: "#60a5fa",
+              step: "02",
+              title: "Queue keywords",
+              body: "Type a topic or let Claude research keywords for you. Each one gets full SERP gap analysis so we know exactly how to rank it.",
             },
             {
-              q: "Replaced three contractors and a Zapier mess. Worth every cent.",
-              n: "Kira Walsh",
-              r: "Director · AuthorityLab",
-              c: "#a78bfa",
+              step: "03",
+              title: "Publish on autopilot",
+              body: "A daily cron generates the article, runs quality gates (1,500+ words, internal links, FAQ schema), and pushes it live to WordPress.",
             },
-          ].map((t) => (
+          ].map((s) => (
             <div
-              key={t.n}
+              key={s.step}
               className="bg-card-grad border border-border rounded-2xl p-6 hover:border-accent-border transition-colors"
             >
-              <div className="text-accent text-2xl leading-none mb-3">&ldquo;</div>
-              <p className="text-text leading-relaxed">{t.q}</p>
-              <div className="flex items-center gap-3 mt-6 pt-5 border-t border-border">
-                <span
-                  className="w-9 h-9 rounded-full grid place-items-center font-black text-black text-sm"
-                  style={{ background: t.c }}
-                >
-                  {t.n[0]}
-                </span>
-                <div className="leading-tight">
-                  <div className="font-bold text-sm">{t.n}</div>
-                  <div className="text-muted text-xs">{t.r}</div>
-                </div>
-              </div>
+              <div className="text-accent text-5xl font-extrabold leading-none mb-4">{s.step}</div>
+              <h3 className="text-text text-lg font-bold mb-2">{s.title}</h3>
+              <p className="text-muted text-sm leading-relaxed">{s.body}</p>
             </div>
           ))}
         </div>
@@ -270,40 +264,45 @@ export default async function LandingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-[1100px] mx-auto">
           {[
             {
-              name: "Starter",
+              name: "Hobby",
               price: "$0",
               cadence: "forever",
-              blurb: "Try the engine on a single site.",
-              features: ["1 site", "20 articles / month", "Keyword research", "Basic analytics"],
+              blurb: "Run a single niche site or weekend project.",
+              features: [
+                "1 site",
+                "10 articles / month",
+                "AI keyword research",
+                "WordPress auto-publish",
+              ],
               cta: "Start Free",
               featured: false,
             },
             {
-              name: "Scale",
-              price: "$49",
+              name: "Operator",
+              price: "$29",
               cadence: "/ month",
-              blurb: "For operators running real volume.",
+              blurb: "Run a portfolio of niche sites on autopilot.",
               features: [
-                "Unlimited sites",
-                "1,000 articles / month",
-                "Auto-publishing",
-                "Rank tracking",
-                "Priority queue",
+                "Up to 10 sites",
+                "150 articles / month",
+                "Daily cron auto-publish",
+                "Self-hosted analytics",
+                "Backlink outreach",
               ],
-              cta: "Start Scale",
+              cta: "Start 14-day trial",
               featured: true,
             },
             {
               name: "Agency",
-              price: "$199",
+              price: "$149",
               cadence: "/ month",
-              blurb: "Multi-client, white-label, audit logs.",
+              blurb: "Manage client sites with usage-based caps.",
               features: [
-                "Everything in Scale",
-                "10,000 articles / month",
-                "White-label reports",
-                "API access",
-                "Dedicated support",
+                "Unlimited sites",
+                "1,000 articles / month",
+                "Search Console integration",
+                "Team seats (up to 5)",
+                "Slack support · 4h",
               ],
               cta: "Talk to sales",
               featured: false,
@@ -340,7 +339,7 @@ export default async function LandingPage() {
               </ul>
               <div className="mt-7">
                 <LinkButton
-                  href="/login"
+                  href={p.price === "$0" ? "/login" : "/pricing"}
                   variant={p.featured ? "primary" : "secondary"}
                   full
                 >
