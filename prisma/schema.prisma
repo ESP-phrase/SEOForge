@@ -111,10 +111,13 @@ model Site {
   id              Int      @id @default(autoincrement())
   slug            String   @unique
   name            String
-  wpUrl           String
-  wpUsername      String
+  // "wordpress" (default) → publish via WP REST API.
+  // "native" → publish to this app's own /blog/[slug] route (dogfood).
+  targetType      String   @default("wordpress")
+  wpUrl           String   @default("")
+  wpUsername      String   @default("")
   // Encrypted with ENCRYPTION_KEY. Never stored in plaintext.
-  wpAppPasswordEnc String
+  wpAppPasswordEnc String  @default("")
   niche           String   @default("")
   audience        String   @default("")
   expertVoice     String   @default("")

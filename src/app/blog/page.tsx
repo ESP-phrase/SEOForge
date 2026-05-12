@@ -1,101 +1,83 @@
 import Link from "next/link";
+import { prisma } from "@/lib/db";
 import { MarketingHeader } from "@/components/marketing/MarketingHeader";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
-import { Panel } from "@/components/Panel";
 
 export const dynamic = "force-dynamic";
 
-const POSTS = [
-  {
-    slug: "post-1",
-    date: "2026-04-22",
-    tag: "Strategy",
-    title: "Why we cap new domains at 2 articles per day",
-    blurb:
-      "The math on Google's spam-detection thresholds, why 'just dump 50 articles' fails, and how to ramp safely.",
-  },
-  {
-    slug: "post-2",
-    date: "2026-04-08",
-    tag: "Engineering",
-    title: "Internal linking that compounds — without an AI",
-    blurb:
-      "A 60-line algorithm that beats most paid SEO tools at finding the right articles to link.",
-  },
-  {
-    slug: "post-3",
-    date: "2026-03-26",
-    tag: "Operator",
-    title: "Running 18 SEO sites with one keyboard",
-    blurb:
-      "Tools, schedules, and the per-site rules that keep ten different niches from blurring together.",
-  },
-  {
-    slug: "post-4",
-    date: "2026-03-12",
-    tag: "Strategy",
-    title: "Programmatic vs editorial — when each one wins",
-    blurb:
-      "A flowchart for picking the right approach to a new niche site. With three real case studies.",
-  },
-];
+export const metadata = {
+  title: "Blog — SEOForge",
+  description: "Strategy, engineering notes, and operator playbooks from the SEOForge team.",
+};
 
-export default function BlogPage() {
+export default async function BlogIndexPage() {
+  const posts = await prisma.article.findMany({
+    where: {
+      status: "published",
+      site: { targetType: "native" },
+    },
+    orderBy: { publishedAt: "desc" },
+    select: {
+      slug: true,
+      title: true,
+      metaDescription: true,
+      publishedAt: true,
+      wordCount: true,
+    },
+    take: 100,
+  });
+
   return (
     <div className="min-h-screen bg-bg text-text">
       <MarketingHeader />
       <main className="max-w-[1100px] mx-auto px-6 md:px-10 py-16">
-        <div className="mb-12 max-w-2xl">
-          <div className="text-accent text-xs font-bold uppercase tracking-wider mb-2">
-            Blog
+        <div className="text-center mb-14">
+          <div className="inline-block bg-accent-dim text-accent border border-accent-border rounded-full text-xs font-bold uppercase tracking-wider px-3 py-1 mb-5">
+            The SEOForge Blog
           </div>
-          <h1 className="text-4xl font-extrabold tracking-tight">
-            Notes from <span className="text-accent">the operators</span> running SEOForge.
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
+            Operator notes from <span className="text-accent">the trenches.</span>
           </h1>
-          <p className="text-muted text-lg mt-3">
-            Strategy, engineering, and post-mortems from real sites we run.
+          <p className="text-muted text-lg mt-4 max-w-xl mx-auto">
+            Strategy, engineering, and field reports from running SEO content at scale —
+            every post was generated and published by SEOForge itself.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {POSTS.map((p) => (
-            <Panel key={p.slug}>
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-[0.65rem] uppercase tracking-wider font-bold bg-accent-dim text-accent border border-accent-border rounded-full px-2.5 py-0.5">
-                  {p.tag}
-                </span>
-                <span className="text-muted-2 text-xs">{p.date}</span>
-              </div>
-              <h2 className="text-lg font-bold leading-snug">
-                <Link href="#" className="text-text hover:text-accent no-underline">
-                  {p.title}
-                </Link>
-              </h2>
-              <p className="text-muted text-sm mt-2 leading-relaxed">{p.blurb}</p>
+        {posts.length === 0 ? (
+          <div className="bg-card-grad border border-border rounded-2xl p-16 text-center">
+            <div className="text-5xl mb-4">📝</div>
+            <h2 className="text-xl font-bold mb-2">No posts yet</h2>
+            <p className="text-muted text-sm">
+              Add a native-target site in the dashboard, queue a few keywords, and the
+              first post will appear here automatically.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {posts.map((p) => (
               <Link
-                href="#"
-                className="inline-block mt-4 text-accent text-sm font-semibold no-underline hover:underline"
+                key={p.slug}
+                href={`/blog/${p.slug}`}
+                className="block bg-card-grad border border-border rounded-2xl p-6 hover:border-accent-border transition-colors no-underline"
               >
-                Read the post →
+                <div className="text-muted text-xs uppercase tracking-wider mb-2">
+                  {p.publishedAt
+                    ? new Date(p.publishedAt).toLocaleDateString(undefined, {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : "Draft"}{" "}
+                  · {p.wordCount} words
+                </div>
+                <h2 className="text-xl font-bold text-text mb-2 leading-snug">{p.title}</h2>
+                <p className="text-muted text-sm leading-relaxed">{p.metaDescription}</p>
+                <div className="text-accent text-sm font-semibold mt-4">Read →</div>
               </Link>
-            </Panel>
-          ))}
-        </div>
-
-        <div className="mt-12 text-center">
-          <p className="text-muted text-sm">
-            New posts are draft-only right now. Follow updates on{" "}
-            <a
-              href="https://github.com/ESP-phrase/SEO"
-              className="text-accent"
-              target="_blank"
-              rel="noreferrer"
-            >
-              GitHub
-            </a>
-            .
-          </p>
-        </div>
+            ))}
+          </div>
+        )}
       </main>
       <MarketingFooter />
     </div>

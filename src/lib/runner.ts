@@ -246,6 +246,49 @@ export async function runOneForSite(
     wpAppPasswordEnc: site.wpAppPasswordEnc,
   };
 
+  // Native target: skip WordPress entirely. Mark the article published and
+  // surface it at /blog/[slug] on this app. Saves the same cost as WP publish.
+  if (site.targetType === "native") {
+    const nativeUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? "https://seoforge.org"}/blog/${article.slug}`;
+    const goLive = site.publishStatus === "publish";
+    await prisma.article.update({
+      where: { id: saved.id },
+      data: {
+        wpUrl: nativeUrl,
+        status: goLive ? "published" : "draft",
+        publishedAt: goLive ? new Date() : null,
+      },
+    });
+    await prisma.keyword.update({
+      where: { id: kw.id },
+      data: { status: goLive ? "published" : "needs_review" },
+    });
+    await prisma.run.update({
+      where: { id: run.id },
+      data: {
+        status: goLive ? "published" : "needs-review",
+        message: `${nativeUrl}${goLive ? "" : " (native draft)"}`,
+        articleId: saved.id,
+        costUsd: article.cost_usd,
+        completedAt: new Date(),
+      },
+    });
+    if (goLive) await incrementArticleUsage();
+    console.log(`${tag} ✓ native publish → ${nativeUrl}`);
+    return {
+      ok: true,
+      site: site.slug,
+      keyword: kw.keyword,
+      title: article.title,
+      articleId: saved.id,
+      wpUrl: nativeUrl,
+      wpStatus: goLive ? "publish" : "draft",
+      wordCount: article.word_count,
+      costUsd: article.cost_usd,
+      status: goLive ? "published" : "needs-review",
+    };
+  }
+
   console.log(`${tag} ⋯ publishing to WordPress as "${site.publishStatus}"…`);
 
   try {
