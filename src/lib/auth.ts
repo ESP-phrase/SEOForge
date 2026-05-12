@@ -18,6 +18,45 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import Resend from "next-auth/providers/resend";
 import { prisma } from "@/lib/db";
 
+/**
+ * Wrap PrismaAdapter so a missing session on delete/update doesn't blow up the
+ * sign-in flow. Auth.js rotates sessions on sign-in and tries to clear any old
+ * one referenced by the cookie — if the user's cookie points to a session that
+ * no longer exists in the DB (stale cookie after a DB reset, e.g.), the default
+ * adapter throws AdapterError. We swallow the "record not found" case only.
+ */
+function tolerantAdapter() {
+  const base = PrismaAdapter(prisma) as ReturnType<typeof PrismaAdapter>;
+  const isMissing = (e: unknown) =>
+    typeof e === "object" && e !== null && "code" in e && (e as { code?: string }).code === "P2025";
+
+  const origDelete = base.deleteSession?.bind(base);
+  if (origDelete) {
+    base.deleteSession = async (token: string) => {
+      try {
+        return await origDelete(token);
+      } catch (e) {
+        if (isMissing(e)) return null;
+        throw e;
+      }
+    };
+  }
+
+  const origUpdate = base.updateSession?.bind(base);
+  if (origUpdate) {
+    base.updateSession = async (data) => {
+      try {
+        return await origUpdate(data);
+      } catch (e) {
+        if (isMissing(e)) return null;
+        throw e;
+      }
+    };
+  }
+
+  return base;
+}
+
 declare module "next-auth" {
   interface Session {
     user: {
@@ -47,7 +86,7 @@ async function isAllowed(email: string): Promise<boolean> {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   debug: true,
-  adapter: PrismaAdapter(prisma),
+  adapter: tolerantAdapter(),
   session: { strategy: "database", maxAge: 60 * 60 * 24 * 14 }, // 14 days
   pages: { signIn: "/login", verifyRequest: "/login/check", error: "/login" },
   providers: [

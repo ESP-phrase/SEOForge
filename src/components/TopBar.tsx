@@ -8,6 +8,7 @@ import { BrandMark } from "@/components/BrandMark";
 const NAV = [
   { href: "/dashboard", label: "Sites" },
   { href: "/sites/new", label: "Add site" },
+  { href: "/analysis", label: "Analysis" },
   { href: "/backlinks", label: "Backlinks" },
   { href: "/activity", label: "Activity" },
 ];
@@ -18,11 +19,15 @@ export function TopBar({ username }: { username?: string }) {
     if (href === "/dashboard")
       return (
         pathname === "/dashboard" ||
-        (pathname.startsWith("/sites/") && !pathname.endsWith("/backlinks")) ||
+        (pathname.startsWith("/sites/") &&
+          !pathname.endsWith("/backlinks") &&
+          !pathname.endsWith("/analysis")) ||
         pathname.startsWith("/articles/")
       );
     if (href === "/backlinks")
       return pathname === "/backlinks" || pathname.endsWith("/backlinks");
+    if (href === "/analysis")
+      return pathname === "/analysis" || pathname.endsWith("/analysis");
     return pathname === href || pathname.startsWith(href + "/");
   };
 
