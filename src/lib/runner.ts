@@ -9,6 +9,7 @@ import { publish, type SiteCreds, type PublishStatus } from "@/lib/wordpress";
 import { addInternalLinks } from "@/lib/linker";
 import { fetchSerp, serpToPromptContext, type SerpAnalysis } from "@/lib/serp";
 import { fetchHeroImage, heroImageHtml } from "@/lib/unsplash";
+import { canGenerateArticle, incrementArticleUsage } from "@/lib/quota";
 
 export type RunResult = {
   ok: boolean;
@@ -53,6 +54,11 @@ export async function runOneForSite(
         site: site.slug,
         skipped: `cap reached (${today}/${site.maxPerDay})`,
       };
+    }
+    // Subscription-level monthly cap (Stripe plan credits).
+    const quota = await canGenerateArticle();
+    if (!quota.ok) {
+      return { ok: false, site: site.slug, skipped: quota.reason ?? "out of credits" };
     }
   }
 
@@ -282,6 +288,9 @@ export async function runOneForSite(
         completedAt: new Date(),
       },
     });
+    if (wp.status === "publish") {
+      await incrementArticleUsage();
+    }
     console.log(`${tag} ✓ pushed to WP → ${wp.url} (wp status: ${wp.status})`);
     return {
       ok: true,

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MarketingHeader } from "@/components/marketing/MarketingHeader";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { LinkButton } from "@/components/Button";
+import { startCheckoutAction } from "@/actions/billing";
 
 type Tier = {
   name: string;
@@ -215,9 +216,26 @@ export default function PricingPage() {
                     </li>
                   ))}
                 </ul>
-                <LinkButton href="/login" full variant={t.accent ? "primary" : "secondary"}>
-                  {t.cta}
-                </LinkButton>
+                {t.priceMo === 0 ? (
+                  <LinkButton href="/login" full variant={t.accent ? "primary" : "secondary"}>
+                    {t.cta}
+                  </LinkButton>
+                ) : (
+                  <form action={startCheckoutAction}>
+                    <input type="hidden" name="plan" value={t.name.toLowerCase()} />
+                    <input type="hidden" name="cadence" value={annual ? "annual" : "monthly"} />
+                    <button
+                      type="submit"
+                      className={`w-full px-5 py-2.5 text-sm font-bold rounded-xl transition-colors ${
+                        t.accent
+                          ? "bg-accent text-black hover:bg-accent/90"
+                          : "bg-surface-2 text-text border border-border hover:bg-surface"
+                      }`}
+                    >
+                      {t.cta}
+                    </button>
+                  </form>
+                )}
               </div>
             );
           })}

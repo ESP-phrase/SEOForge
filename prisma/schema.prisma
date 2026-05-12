@@ -19,6 +19,17 @@ model User {
   createdAt     DateTime  @default(now())
   lastLogin     DateTime?
 
+  // Billing — Stripe subscription state.
+  // plan: "hobby" | "operator" | "agency". Free users stay on "hobby".
+  // articleCredits resets to plan cap on each Stripe renewal webhook.
+  plan              String    @default("hobby")
+  stripeCustomerId  String?   @unique
+  stripeSubId       String?   @unique
+  stripePriceId     String?
+  planRenewsAt      DateTime?
+  articleCredits    Int       @default(10)
+  articlesUsed      Int       @default(0)
+
   accounts Account[]
   sessions Session[]
 }

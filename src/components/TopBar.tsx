@@ -60,14 +60,22 @@ export function TopBar({ username }: { username?: string }) {
 
       <div className="ml-auto flex items-center gap-3">
         {username ? (
-          <form action={signOutAction}>
-            <button
-              type="submit"
-              className="px-3 py-2 bg-transparent text-muted border border-border rounded-lg text-xs font-medium hover:bg-surface-2 hover:text-text transition-colors"
+          <>
+            <Link
+              href="/billing"
+              className="px-3 py-2 text-xs font-medium text-muted hover:text-text no-underline rounded-lg hover:bg-surface-2 transition-colors"
             >
-              {username} · sign out
-            </button>
-          </form>
+              Billing
+            </Link>
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="px-3 py-2 bg-transparent text-muted border border-border rounded-lg text-xs font-medium hover:bg-surface-2 hover:text-text transition-colors"
+              >
+                {username} · sign out
+              </button>
+            </form>
+          </>
         ) : null}
       </div>
     </div>
