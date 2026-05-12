@@ -131,6 +131,10 @@ export async function runOneForSite(
         authorBioHtml: site.authorBioHtml,
         ctaHtml: site.ctaHtml,
         heroImageHtml: heroHtml,
+        themeAccent: site.themeAccent,
+        themeAccent2: site.themeAccent2,
+        themeAccent3: site.themeAccent3,
+        themeAccent4: site.themeAccent4,
       },
       serpContext,
     );

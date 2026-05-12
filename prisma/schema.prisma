@@ -128,6 +128,12 @@ model Site {
   publishStatus   String   @default("draft")
   active          Boolean  @default(true)
   createdAt       DateTime @default(now())
+  // Per-site article theme. Hex colors injected as CSS variables into every
+  // generated article so headings, callouts, and tables match the site brand.
+  themeAccent     String   @default("#0ea5e9") // primary — H2 border, links, step circles
+  themeAccent2    String   @default("#f59e0b") // warm — TL;DR, callouts, key stats
+  themeAccent3    String   @default("#22c55e") // success — takeaway callouts, stat boxes
+  themeAccent4    String   @default("#a855f7") // accent variety — quote marks, 4th stat box
   // Google Search Console integration. Refresh token is encrypted with
   // ENCRYPTION_KEY (same scheme as wpAppPasswordEnc). gscSiteUrl is the exact
   // property URL registered in Search Console (e.g. "sc-domain:example.com"

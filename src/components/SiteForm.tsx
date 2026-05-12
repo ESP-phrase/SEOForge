@@ -31,7 +31,20 @@ type Site = {
   minWordCount: number;
   publishStatus: string;
   active: boolean;
+  themeAccent?: string;
+  themeAccent2?: string;
+  themeAccent3?: string;
+  themeAccent4?: string;
 };
+
+const COLOR_PRESETS = [
+  { name: "Sky (default)", colors: ["#0ea5e9", "#f59e0b", "#22c55e", "#a855f7"] },
+  { name: "Forest", colors: ["#059669", "#d97706", "#0891b2", "#7c3aed"] },
+  { name: "Sunset", colors: ["#dc2626", "#ea580c", "#facc15", "#9333ea"] },
+  { name: "Ocean", colors: ["#0284c7", "#06b6d4", "#10b981", "#6366f1"] },
+  { name: "Mono dark", colors: ["#1f2937", "#6b7280", "#9ca3af", "#d1d5db"] },
+  { name: "Lime", colors: ["#84cc16", "#f59e0b", "#06b6d4", "#a855f7"] },
+];
 
 export function SiteForm({
   action,
@@ -43,7 +56,18 @@ export function SiteForm({
   error?: string;
 }) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [accent1, setAccent1] = useState(site?.themeAccent ?? "#0ea5e9");
+  const [accent2, setAccent2] = useState(site?.themeAccent2 ?? "#f59e0b");
+  const [accent3, setAccent3] = useState(site?.themeAccent3 ?? "#22c55e");
+  const [accent4, setAccent4] = useState(site?.themeAccent4 ?? "#a855f7");
   const isEdit = !!site;
+
+  const applyPreset = (colors: string[]) => {
+    setAccent1(colors[0]);
+    setAccent2(colors[1]);
+    setAccent3(colors[2]);
+    setAccent4(colors[3]);
+  };
 
   return (
     <div className="max-w-4xl">
@@ -172,6 +196,60 @@ export function SiteForm({
           mono
           placeholder='<p><strong>Written by Alex</strong> — founder of ResumeGenius. <a href="https://resumegenius.guru">Try it free</a>.</p>'
         />
+
+        {/* Article theme colors */}
+        <div className="mt-6 p-4 bg-surface-2 border border-border rounded-xl">
+          <div className="flex items-baseline justify-between mb-3">
+            <div>
+              <div className="font-bold text-sm text-text">Article colors</div>
+              <div className="text-muted text-xs mt-0.5">
+                Customize the colors used in headings, callouts, stats, and tables.
+              </div>
+            </div>
+          </div>
+
+          {/* Presets */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {COLOR_PRESETS.map((preset) => (
+              <button
+                key={preset.name}
+                type="button"
+                onClick={() => applyPreset(preset.colors)}
+                className="flex items-center gap-2 px-2.5 py-1.5 bg-surface border border-border rounded-lg text-xs font-semibold hover:border-accent-border transition-colors"
+              >
+                <span className="flex -space-x-1">
+                  {preset.colors.map((c) => (
+                    <span
+                      key={c}
+                      className="w-3.5 h-3.5 rounded-full border border-bg"
+                      style={{ background: c }}
+                    />
+                  ))}
+                </span>
+                <span className="text-muted">{preset.name}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Individual color pickers */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <ColorField label="Primary" hint="Headings, links, steps" value={accent1} onChange={setAccent1} name="themeAccent" />
+            <ColorField label="Warm" hint="TL;DR, key stats" value={accent2} onChange={setAccent2} name="themeAccent2" />
+            <ColorField label="Success" hint="Takeaways, stat #3" value={accent3} onChange={setAccent3} name="themeAccent3" />
+            <ColorField label="Variety" hint="Pull quote, stat #4" value={accent4} onChange={setAccent4} name="themeAccent4" />
+          </div>
+
+          {/* Live preview */}
+          <div className="mt-4 p-3 bg-bg border border-border rounded-lg">
+            <div className="text-muted text-xs mb-2 uppercase tracking-wide font-semibold">Preview</div>
+            <div className="flex flex-wrap gap-2">
+              <span className="px-2.5 py-1 rounded-md text-xs font-bold text-white" style={{ background: accent1 }}>Heading</span>
+              <span className="px-2.5 py-1 rounded-md text-xs font-bold text-white" style={{ background: accent2 }}>TL;DR</span>
+              <span className="px-2.5 py-1 rounded-md text-xs font-bold text-white" style={{ background: accent3 }}>★ Takeaway</span>
+              <span className="px-2.5 py-1 rounded-md text-xs font-bold text-white" style={{ background: accent4 }}>&ldquo; Quote</span>
+            </div>
+          </div>
+        </div>
 
         {/* Advanced section */}
         <button
@@ -332,6 +410,50 @@ function TextareaWithIcon({
         className={`!pl-11 !pr-3 !min-h-[5.5rem] ${mono ? "" : "!font-sans"}`}
         style={mono ? {} : { fontFamily: "inherit" }}
       />
+    </div>
+  );
+}
+
+function ColorField({
+  label,
+  hint,
+  value,
+  onChange,
+  name,
+}: {
+  label: string;
+  hint: string;
+  value: string;
+  onChange: (v: string) => void;
+  name: string;
+}) {
+  return (
+    <div>
+      <div className="text-xs font-semibold text-text mb-1">{label}</div>
+      <div className="text-muted text-[0.65rem] mb-2 leading-snug">{hint}</div>
+      <div className="flex items-center gap-2">
+        <label className="relative cursor-pointer">
+          <input
+            type="color"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+            aria-label={label}
+          />
+          <span
+            className="block w-10 h-10 rounded-lg border-2 border-border shadow-inner cursor-pointer"
+            style={{ background: value }}
+          />
+        </label>
+        <input
+          type="text"
+          name={name}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 min-w-0 px-2 py-1.5 bg-bg border border-border rounded-md text-xs font-mono text-text focus:outline-none focus:border-accent-border"
+          placeholder="#000000"
+        />
+      </div>
     </div>
   );
 }

@@ -6,6 +6,11 @@ import { prisma } from "@/lib/db";
 import { encrypt } from "@/lib/encryption";
 import { testConnection } from "@/lib/wordpress";
 
+function getColor(form: FormData, key: string, fallback: string): string {
+  const raw = String(form.get(key) ?? "").trim();
+  return /^#[0-9a-fA-F]{6}$/.test(raw) ? raw : fallback;
+}
+
 function slugify(text: string): string {
   return (
     text
@@ -49,6 +54,10 @@ export async function createSiteAction(formData: FormData) {
         maxPerDay: getInt(formData, "maxPerDay", 2),
         minWordCount: getInt(formData, "minWordCount", 1000),
         publishStatus: String(formData.get("publishStatus") ?? "draft"),
+        themeAccent: getColor(formData, "themeAccent", "#0ea5e9"),
+        themeAccent2: getColor(formData, "themeAccent2", "#f59e0b"),
+        themeAccent3: getColor(formData, "themeAccent3", "#22c55e"),
+        themeAccent4: getColor(formData, "themeAccent4", "#a855f7"),
       },
     });
     revalidatePath("/");
@@ -76,6 +85,10 @@ export async function updateSiteAction(siteId: number, formData: FormData) {
     minWordCount: getInt(formData, "minWordCount", 1000),
     publishStatus: String(formData.get("publishStatus") ?? "draft"),
     active: formData.get("active") === "1",
+    themeAccent: getColor(formData, "themeAccent", "#0ea5e9"),
+    themeAccent2: getColor(formData, "themeAccent2", "#f59e0b"),
+    themeAccent3: getColor(formData, "themeAccent3", "#22c55e"),
+    themeAccent4: getColor(formData, "themeAccent4", "#a855f7"),
   };
   const newPassword = String(formData.get("wpAppPassword") ?? "").trim();
   if (newPassword) data.wpAppPasswordEnc = encrypt(newPassword);
