@@ -19,7 +19,7 @@ export default async function ClusterPlannerPage({ params }: { params: Promise<{
         title="Topic cluster planner"
         subtitle={`Generate 1 pillar + 10-12 cluster articles linked together`}
       />
-      <ClusterPlanner siteId={siteId} siteName={site.name} />
+      <ClusterPlanner siteId={siteId} siteName={site.name} siteNiche={site.niche} />
     </>
   );
 }
