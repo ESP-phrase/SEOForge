@@ -36,3 +36,8 @@ export async function signOutAction() {
   await signOut({ redirect: false });
   redirect("/login");
 }
+
+export async function signInWithGoogleAction() {
+  // Let Auth.js handle the OAuth redirect to Google.
+  await signIn("google", { redirectTo: "/dashboard" });
+}

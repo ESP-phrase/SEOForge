@@ -9,6 +9,7 @@
     "lint": "next lint",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
+    "stripe:seed": "node scripts/stripe-seed.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {

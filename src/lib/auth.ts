@@ -16,7 +16,12 @@
 import NextAuth, { type DefaultSession } from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Resend from "next-auth/providers/resend";
+import Google from "next-auth/providers/google";
 import { prisma } from "@/lib/db";
+
+export function isGoogleAuthConfigured(): boolean {
+  return !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+}
 
 /**
  * Wrap PrismaAdapter so a missing session on delete/update doesn't blow up the
@@ -95,6 +100,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       from: process.env.EMAIL_FROM ?? "onboarding@resend.dev",
       name: "Email",
     }),
+    ...(isGoogleAuthConfigured()
+      ? [
+          Google({
+            clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+            // Only basic profile + email — same OAuth client used for GSC has
+            // the webmasters.readonly scope, which Google quietly grants too,
+            // but Auth.js' own consent only asks for openid/email/profile here.
+            authorization: { params: { scope: "openid email profile" } },
+          }),
+        ]
+      : []),
   ],
   callbacks: {
     signIn: async ({ user }) => {
