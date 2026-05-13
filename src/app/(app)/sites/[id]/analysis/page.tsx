@@ -6,6 +6,7 @@ import { Panel } from "@/components/Panel";
 import { StatTile } from "@/components/StatTile";
 import { Pill } from "@/components/Pill";
 import { scoreArticle, type ArticleScorecard } from "@/lib/seoScore";
+import { refreshArticleAction } from "@/actions/refresh";
 
 export const dynamic = "force-dynamic";
 
@@ -111,6 +112,62 @@ export default async function AnalysisPage({
           </a>
         </div>
       </Panel>
+
+      {/* Stale articles (>180 days) — refresh boosts rankings */}
+      {(() => {
+        const cutoff = new Date(Date.now() - 180 * 24 * 3600 * 1000);
+        const stale = articles
+          .filter(
+            (a) =>
+              a.status === "published" &&
+              a.publishedAt &&
+              new Date(a.publishedAt) < cutoff,
+          )
+          .slice(0, 10);
+        if (stale.length === 0) return null;
+        return (
+          <Panel
+            title={`Stale articles (${stale.length})`}
+            subtitle="Published more than 6 months ago — refreshing them gives Google a 'recency' boost"
+            className="mb-4"
+          >
+            <div className="space-y-2">
+              {stale.map((a) => {
+                const age = Math.floor(
+                  (Date.now() - new Date(a.publishedAt!).getTime()) /
+                    (24 * 3600 * 1000),
+                );
+                return (
+                  <div
+                    key={a.id}
+                    className="flex items-center justify-between gap-3 p-3 bg-surface-2 border border-border rounded-lg"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-semibold text-text truncate">{a.title}</div>
+                      <div className="text-muted text-xs mt-0.5">
+                        Published {age} days ago · {a.wordCount} words
+                      </div>
+                    </div>
+                    <form action={refreshArticleAction}>
+                      <input type="hidden" name="articleId" value={a.id} />
+                      <button
+                        type="submit"
+                        className="px-3 py-1.5 text-xs font-bold bg-accent text-black rounded-lg whitespace-nowrap"
+                      >
+                        ⟳ Regenerate
+                      </button>
+                    </form>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-muted-2 text-xs mt-3">
+              Regenerating re-queues the keyword and marks the existing article as
+              <code className="text-text"> stale</code>. Run the site to publish the fresh version.
+            </p>
+          </Panel>
+        );
+      })()}
 
       {/* Per-article scorecards */}
       <Panel

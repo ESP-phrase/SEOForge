@@ -80,6 +80,26 @@ model SerpCache {
 // Backlink outreach prospects — resource pages, niche blogs, etc. that should
 // link to one of the site's articles. Each row is a single target. The whole
 // pipeline (find → score → draft email → manual send → track) lives off this.
+// Inbound backlinks pointing AT this site. Populated from GSC API, Ahrefs/
+// Moz/Majestic CSV import, or manual paste. Used for anchor-text diversity
+// analysis — Google penalizes profiles where >40% of anchors are exact-match.
+model Backlink {
+  id           Int      @id @default(autoincrement())
+  siteId       Int
+  site         Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  sourceUrl    String   // the linking page
+  sourceDomain String   // host of the linking page (for deduping referring domains)
+  targetUrl    String   // the URL on our site being linked to
+  anchorText   String   @default("")
+  // exact|partial|branded|generic|naked-url|image — classified at import time
+  anchorType   String   @default("partial")
+  rel          String   @default("") // dofollow|nofollow|ugc|sponsored
+  firstSeen    DateTime @default(now())
+
+  @@unique([siteId, sourceUrl, targetUrl])
+  @@index([siteId, anchorType])
+}
+
 model OutreachProspect {
   id              Int       @id @default(autoincrement())
   siteId          Int
@@ -154,6 +174,7 @@ model Site {
   runs     Run[]
   outreachProspects OutreachProspect[]
   pageViews         PageView[]
+  backlinks         Backlink[]
 }
 
 model Keyword {

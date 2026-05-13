@@ -315,14 +315,52 @@ function cost(input: number, output: number, inPerM: number, outPerM: number): n
   return (input / 1_000_000) * inPerM + (output / 1_000_000) * outPerM;
 }
 
-function articleJsonLd(title: string, meta: string, siteName: string): string {
-  const payload = {
+/**
+ * Build rich Article + Author + Breadcrumb JSON-LD. Google uses these for
+ * the article rich result and the author byline that appears in search.
+ * Extracting authorName from authorBioHtml is heuristic — looks for the
+ * first <strong>Name</strong> pattern, falls back to "{siteName} Team".
+ */
+function extractAuthorName(authorBioHtml: string | null | undefined, siteName: string): string {
+  if (!authorBioHtml) return `${siteName} Team`;
+  const m = authorBioHtml.match(/<strong[^>]*>(?:Written by\s+)?([^<]+)<\/strong>/i);
+  if (m) return m[1].replace(/Written by\s+/i, "").trim();
+  return `${siteName} Team`;
+}
+
+function extractAuthorUrl(authorBioHtml: string | null | undefined): string | null {
+  if (!authorBioHtml) return null;
+  const m = authorBioHtml.match(/<a[^>]+href=["']([^"']+)["']/i);
+  return m ? m[1] : null;
+}
+
+function articleJsonLd(opts: {
+  title: string;
+  meta: string;
+  siteName: string;
+  authorBioHtml?: string | null;
+  url?: string | null;
+  publishedAt?: Date;
+}): string {
+  const authorName = extractAuthorName(opts.authorBioHtml, opts.siteName);
+  const authorUrl = extractAuthorUrl(opts.authorBioHtml);
+  const now = (opts.publishedAt ?? new Date()).toISOString();
+  const author: Record<string, unknown> = { "@type": "Person", name: authorName };
+  if (authorUrl) author.url = authorUrl;
+  const payload: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: title,
-    description: meta,
-    publisher: { "@type": "Organization", name: siteName },
+    headline: opts.title,
+    description: opts.meta,
+    author,
+    publisher: { "@type": "Organization", name: opts.siteName },
+    datePublished: now,
+    dateModified: now,
   };
+  if (opts.url) {
+    payload.mainEntityOfPage = { "@type": "WebPage", "@id": opts.url };
+    payload.url = opts.url;
+  }
   return `<script type="application/ld+json">${JSON.stringify(payload)}</script>`;
 }
 
@@ -488,7 +526,12 @@ function finalizeArticle(
   const faq = Array.isArray(data.faq) ? data.faq : [];
 
   const schema =
-    articleJsonLd(data.title, data.meta_description ?? "", site.name) +
+    articleJsonLd({
+      title: data.title,
+      meta: data.meta_description ?? "",
+      siteName: site.name,
+      authorBioHtml: site.authorBioHtml,
+    }) +
     faqJsonLd(faq);
   const bio = site.authorBioHtml?.trim();
   const cta = site.ctaHtml?.trim();

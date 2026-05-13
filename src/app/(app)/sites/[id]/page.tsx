@@ -111,6 +111,18 @@ export default async function SiteDetailPage({
         >
           ⚡ Keyword research →
         </Link>
+        <Link
+          href={`/sites/${siteId}/cluster`}
+          className="px-3.5 py-2 bg-surface border border-border-strong rounded-lg text-sm font-semibold text-text hover:bg-surface-2 transition-colors no-underline"
+        >
+          🕸 Cluster planner →
+        </Link>
+        <Link
+          href={`/sites/${siteId}/anchors`}
+          className="px-3.5 py-2 bg-surface border border-border-strong rounded-lg text-sm font-semibold text-text hover:bg-surface-2 transition-colors no-underline"
+        >
+          ⚓ Anchor diversity →
+        </Link>
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3 mb-5">
