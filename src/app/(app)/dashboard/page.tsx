@@ -9,6 +9,7 @@ import { Sparkline } from "@/components/charts/Sparkline";
 import { Pill } from "@/components/Pill";
 import { LinkButton } from "@/components/Button";
 import { DashboardFilters } from "@/components/DashboardFilters";
+import { NextStepCard } from "@/components/NextStepCard";
 import {
   GlobeIcon,
   CheckCircleIcon,
@@ -327,6 +328,8 @@ export default async function HomePage({
       >
         <DashboardFilters sites={sites.map((s) => ({ id: s.id, name: s.name }))} />
       </Hero>
+
+      <NextStepCard />
 
       {/* 6-tile metric row */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-5">
