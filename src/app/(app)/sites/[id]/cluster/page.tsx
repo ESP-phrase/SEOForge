@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/PageHeader";
 import { ClusterPlanner } from "@/components/ClusterPlanner";
 import { SiteTabs } from "@/components/SiteTabs";
+import { ManualKeywordQueue } from "@/components/ManualKeywordQueue";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,12 @@ export default async function ClusterPlannerPage({ params }: { params: Promise<{
         subtitle={`Generate 1 pillar + 10-12 cluster articles linked together`}
       />
       <ClusterPlanner siteId={siteId} siteName={site.name} siteNiche={site.niche} />
+
+      <div className="text-center text-muted text-xs uppercase tracking-wider font-bold my-5">
+        — or skip Claude entirely —
+      </div>
+
+      <ManualKeywordQueue siteId={siteId} />
     </>
   );
 }

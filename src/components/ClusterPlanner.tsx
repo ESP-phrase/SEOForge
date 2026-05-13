@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { generateClusterAction, saveClusterAction, type ClusterPlan } from "@/actions/cluster";
+import { runSingleAction } from "@/actions/runs";
 
 const INTENT_COLOR: Record<string, string> = {
   informational: "#0ea5e9",
@@ -28,6 +29,16 @@ export function ClusterPlanner({
   const [saving, startSaving] = useTransition();
   const [autoStatus, setAutoStatus] = useState<string | null>(null);
   const [autoPending, startAuto] = useTransition();
+  const [runResult, setRunResult] = useState<{ ok: boolean; title?: string; wpUrl?: string; error?: string; skipped?: string } | null>(null);
+  const [runPending, startRun] = useTransition();
+
+  const runNext = () => {
+    setRunResult(null);
+    startRun(async () => {
+      const r = await runSingleAction(siteId, false);
+      setRunResult(r as never);
+    });
+  };
 
   const generate = (fd: FormData) => {
     setError(null);
