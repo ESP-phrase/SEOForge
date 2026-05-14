@@ -1,4 +1,4 @@
-import { sendMagicLinkAction, signInWithGoogleAction } from "@/actions/auth";
+import { sendMagicLinkAction, signInWithGoogleAction, adminQuickLoginAction } from "@/actions/auth";
 import { isGoogleAuthConfigured } from "@/lib/auth";
 import { Button } from "@/components/Button";
 import { IconInput } from "@/components/auth/IconInput";
@@ -42,6 +42,20 @@ export default async function LoginPage({
             <div className="bg-[rgba(248,113,113,0.12)] text-danger border border-[rgba(248,113,113,0.3)] rounded-lg px-3.5 py-2.5 mb-4 text-sm">
               {error}
             </div>
+          ) : null}
+          {process.env.ADMIN_QUICK_LOGIN === "1" ? (
+            <form action={adminQuickLoginAction} className="mb-4">
+              <button
+                type="submit"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-accent text-black rounded-xl font-bold text-sm hover:bg-accent/90 transition-colors"
+              >
+                <SparkIcon size={14} />
+                Admin quick login
+              </button>
+              <p className="text-muted-2 text-[0.65rem] text-center mt-1.5">
+                Bypasses magic link — disable by removing <code>ADMIN_QUICK_LOGIN=1</code>
+              </p>
+            </form>
           ) : null}
           {isGoogleAuthConfigured() ? (
             <>
