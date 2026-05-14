@@ -10,6 +10,7 @@ import { Pill } from "@/components/Pill";
 import { LinkButton } from "@/components/Button";
 import { DashboardFilters } from "@/components/DashboardFilters";
 import { NextStepCard } from "@/components/NextStepCard";
+import { ToolsHub } from "@/components/ToolsHub";
 import {
   GlobeIcon,
   CheckCircleIcon,
@@ -330,6 +331,8 @@ export default async function HomePage({
       </Hero>
 
       <NextStepCard />
+
+      <ToolsHub />
 
       {/* 6-tile metric row */}
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-5">
