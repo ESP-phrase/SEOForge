@@ -3,6 +3,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getEnv } from "@/lib/envFallback";
 
 /**
  * HARO / source-request response drafter. The user pastes a journalist's
@@ -30,7 +31,7 @@ export async function draftHaroResponseAction(formData: FormData): Promise<{
   const site = await prisma.site.findUnique({ where: { id: siteId } });
   if (!site) return { ok: false, error: "site not found" };
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY ?? "" });
+  const client = new Anthropic({ apiKey: getEnv("ANTHROPIC_API_KEY") });
   const SYSTEM = `You draft responses to journalist source requests (HARO, Connectively, Featured.com, etc).
 Your goal: get the user quoted. Reporters reject responses that are generic, over-promotional, or longer than 200 words.
 

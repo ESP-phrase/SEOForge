@@ -12,23 +12,30 @@ export function RunWidget({ siteId }: { siteId: number }) {
   const [running, setRunning] = useState(false);
   const [, startTransition] = useTransition();
 
+  const [currentLabel, setCurrentLabel] = useState<string>("");
+
   async function handleRun(e: React.FormEvent) {
     e.preventDefault();
     setRunning(true);
     setResults([]);
     const collected: RunResult[] = [];
     for (let i = 0; i < count; i++) {
+      setCurrentLabel(`Generating article ${i + 1} of ${count}…`);
       const r = await runSingleAction(siteId, dryRun);
       collected.push(r);
       setResults([...collected]);
       if (!r.ok) break;
     }
+    setCurrentLabel("");
     setRunning(false);
     startTransition(() => {
-      // Trigger server-component refresh so stats/articles update
       window.location.hash = `run-${Date.now()}`;
     });
   }
+
+  const pct = count > 0 ? Math.round((results.length / count) * 100) : 0;
+  const totalCost = results.reduce((s, r) => s + (r.costUsd ?? 0), 0);
+  const okCount = results.filter((r) => r.ok).length;
 
   return (
     <div>
@@ -60,15 +67,41 @@ export function RunWidget({ siteId }: { siteId: number }) {
         </div>
         <div className="pb-1">
           <Button type="submit" disabled={running}>
-            {running ? `Running ${results.length}/${count}…` : "Run"}
+            {running
+              ? `Running ${results.length}/${count} · ${pct}%`
+              : `Run ${count} article${count === 1 ? "" : "s"}`}
           </Button>
         </div>
       </form>
 
-      {results.length > 0 ? (
+      {(running || results.length > 0) ? (
         <div className="mt-5">
+          {/* Progress bar */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between text-xs mb-1.5">
+              <span className="text-text font-semibold">
+                {running ? currentLabel : `Done · ${okCount}/${count} succeeded`}
+              </span>
+              <span className="text-muted">
+                {results.length}/{count}{totalCost > 0 ? ` · $${totalCost.toFixed(3)}` : ""}
+              </span>
+            </div>
+            <div className="w-full h-2 bg-surface-2 rounded-full overflow-hidden border border-border">
+              <div
+                className="h-full bg-accent transition-all duration-300"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            {running ? (
+              <div className="flex items-center gap-2 mt-2 text-xs text-muted">
+                <span className="inline-block w-2 h-2 rounded-full bg-accent animate-pulse" />
+                Claude is writing… typical 25-45s per article
+              </div>
+            ) : null}
+          </div>
+
           <h4 className="text-xs uppercase tracking-wider text-muted font-semibold mb-2">
-            Last run
+            Run log
           </h4>
           <div className="border border-border rounded-lg overflow-hidden">
             {results.map((r, i) => (

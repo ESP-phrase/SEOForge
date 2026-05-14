@@ -6,6 +6,7 @@
  * suggestKeywords returns long-tail keyword candidates with intent tags.
  */
 import Anthropic from "@anthropic-ai/sdk";
+import { getEnv } from "@/lib/envFallback";
 
 const ARTICLE_MODEL = "claude-sonnet-4-6";
 const ARTICLE_INPUT_PER_M = 3.0;
@@ -114,7 +115,7 @@ Output a single JSON object, no prose, no fences:
 }`;
 
 function getClient(): Anthropic {
-  const key = process.env.ANTHROPIC_API_KEY;
+  const key = getEnv("ANTHROPIC_API_KEY");
   if (!key) throw new Error("ANTHROPIC_API_KEY env var is required.");
   return new Anthropic({ apiKey: key });
 }

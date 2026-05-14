@@ -11,6 +11,7 @@ import { RunWidget } from "@/components/RunWidget";
 import { TestWordPressButton } from "@/components/TestWordPressButton";
 import { CustomDomainPanel } from "@/components/CustomDomainPanel";
 import { SiteTabs } from "@/components/SiteTabs";
+import { TopScoresModal } from "@/components/TopScoresModal";
 
 export default async function SiteDetailPage({
   params,
@@ -88,6 +89,10 @@ export default async function SiteDetailPage({
       />
 
       <SiteTabs siteId={siteId} />
+
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <TopScoresModal siteId={siteId} siteName={site.name} />
+      </div>
 
       {added ? (
         <div className="bg-accent-dim text-accent border border-accent-border rounded-lg px-3.5 py-2.5 mb-4 text-sm">
