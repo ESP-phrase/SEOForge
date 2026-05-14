@@ -26,6 +26,11 @@ export async function importKeywordsAction(formData: FormData): Promise<{
   const intent = String(formData.get("intent") ?? "informational");
   if (!siteId || !text) return { ok: false, error: "missing siteId or text" };
 
+  const tag = `[import:site=${siteId}]`;
+  const t0 = Date.now();
+  const linesTotal = text.split("\n").filter((l) => l.trim()).length;
+  console.log(`${tag} ▶ import started · ${linesTotal} lines · intent=${intent}`);
+
   // Detect delimiter
   const firstLine = text.split("\n").find((l) => l.trim()) ?? "";
   const sep = firstLine.includes("\t") ? "\t" : firstLine.includes(",") ? "," : null;
@@ -49,10 +54,14 @@ export async function importKeywordsAction(formData: FormData): Promise<{
         data: { siteId, keyword: kw, intent, status: "queued" },
       });
       added += 1;
+      console.log(`${tag}   ✓ queued: ${kw}`);
     } catch {
       skipped += 1;
+      console.log(`${tag}   ⊘ dup:    ${kw}`);
     }
   }
+  const dur = ((Date.now() - t0) / 1000).toFixed(1);
+  console.log(`${tag} ✓ done · added=${added} skipped=${skipped} · ${dur}s`);
   revalidatePath(`/sites/${siteId}/cluster`);
   revalidatePath(`/sites/${siteId}`);
   return { ok: true, added, skipped };

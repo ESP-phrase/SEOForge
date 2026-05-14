@@ -13,6 +13,9 @@ export function ManualKeywordQueue({ siteId }: { siteId: number }) {
   const [result, setResult] = useState<{ added: number; skipped: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [log, setLog] = useState<string[]>([]);
+  const appendLog = (line: string) =>
+    setLog((l) => [...l, `${new Date().toLocaleTimeString()}  ${line}`]);
 
   return (
     <div className="bg-card-grad border border-border rounded-2xl p-5">
@@ -32,10 +35,18 @@ export function ManualKeywordQueue({ siteId }: { siteId: number }) {
         action={(fd: FormData) => {
           setError(null);
           setResult(null);
+          const lines = String(fd.get("text") ?? "").split("\n").filter((l) => l.trim()).length;
+          setLog([]);
+          appendLog(`▶ Importing ${lines} lines (intent=${fd.get("intent")})`);
+          const t0 = Date.now();
           startTransition(async () => {
             const r = await importKeywordsAction(fd);
-            if (!r.ok) setError(r.error ?? "import failed");
-            else {
+            const dur = ((Date.now() - t0) / 1000).toFixed(1);
+            if (!r.ok) {
+              appendLog(`✗ Import failed: ${r.error ?? "unknown"}`);
+              setError(r.error ?? "import failed");
+            } else {
+              appendLog(`✓ Done in ${dur}s · added ${r.added ?? 0} · skipped ${r.skipped ?? 0}`);
               setResult({ added: r.added ?? 0, skipped: r.skipped ?? 0 });
               setText("");
             }
@@ -86,6 +97,29 @@ export function ManualKeywordQueue({ siteId }: { siteId: number }) {
           </div>
         </div>
       </form>
+
+      {log.length > 0 ? (
+        <div className="mt-4 bg-bg border border-border rounded-lg p-3 font-mono text-xs">
+          <div className="text-muted text-[0.6rem] uppercase tracking-wider font-bold mb-1.5">
+            Activity log
+          </div>
+          <div className="space-y-0.5 max-h-32 overflow-y-auto">
+            {log.map((line, i) => (
+              <div
+                key={i}
+                className={
+                  line.includes("✓") ? "text-accent"
+                  : line.includes("✗") ? "text-red-400"
+                  : line.includes("▶") ? "text-text font-semibold"
+                  : "text-muted"
+                }
+              >
+                {line}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -40,26 +40,47 @@ export function ClusterPlanner({
     });
   };
 
+  const [log, setLog] = useState<string[]>([]);
+  const appendLog = (line: string) =>
+    setLog((l) => [...l, `${new Date().toLocaleTimeString()}  ${line}`]);
+
   const generate = (fd: FormData) => {
     setError(null);
     setPlan(null);
     setSaved(null);
+    setLog([]);
+    const topic = String(fd.get("pillarTopic") ?? "");
+    appendLog(`▶ Sending pillar "${topic}" to Claude…`);
+    const t0 = Date.now();
     startTransition(async () => {
       const r = await generateClusterAction(fd);
-      if (!r.ok) setError(r.error ?? "generate failed");
-      else setPlan(r.plan ?? null);
+      const dur = ((Date.now() - t0) / 1000).toFixed(1);
+      if (!r.ok) {
+        appendLog(`✗ Error after ${dur}s: ${r.error ?? "generate failed"}`);
+        setError(r.error ?? "generate failed");
+      } else {
+        appendLog(`✓ Claude returned a plan in ${dur}s · ${r.plan?.articles.length ?? 0} articles`);
+        if (r.plan?.pillar_title) appendLog(`   Pillar: "${r.plan.pillar_title}"`);
+        setPlan(r.plan ?? null);
+      }
     });
   };
 
   const save = () => {
     if (!plan) return;
+    appendLog(`▶ Queuing ${plan.articles.length} keywords…`);
     const fd = new FormData();
     fd.set("siteId", String(siteId));
     fd.set("plan", JSON.stringify(plan));
     startSaving(async () => {
       const r = await saveClusterAction(fd);
-      if (!r.ok) setError(r.error ?? "save failed");
-      else setSaved({ added: r.added ?? 0, skipped: r.skipped ?? 0 });
+      if (!r.ok) {
+        appendLog(`✗ Save failed: ${r.error ?? "unknown"}`);
+        setError(r.error ?? "save failed");
+      } else {
+        appendLog(`✓ Queued ${r.added ?? 0} · skipped ${r.skipped ?? 0} dupes`);
+        setSaved({ added: r.added ?? 0, skipped: r.skipped ?? 0 });
+      }
     });
   };
 
@@ -68,28 +89,41 @@ export function ClusterPlanner({
     setError(null);
     setSaved(null);
     setPlan(null);
+    setLog([]);
+    const topic = defaultTopic || siteName;
+    appendLog(`▶ Auto-running for pillar "${topic}"`);
+    appendLog(`   Step 1/2: Asking Claude to design the cluster…`);
     setAutoStatus("Planning cluster with Claude…");
+    const t0 = Date.now();
     startAuto(async () => {
       const fd = new FormData();
       fd.set("siteId", String(siteId));
-      fd.set("pillarTopic", defaultTopic || siteName);
+      fd.set("pillarTopic", topic);
       const r = await generateClusterAction(fd);
+      const dur1 = ((Date.now() - t0) / 1000).toFixed(1);
       if (!r.ok || !r.plan) {
+        appendLog(`✗ Plan failed after ${dur1}s: ${r.error ?? "generate failed"}`);
         setError(r.error ?? "generate failed");
         setAutoStatus(null);
         return;
       }
+      appendLog(`✓ Plan ready in ${dur1}s · ${r.plan.articles.length} articles`);
+      appendLog(`   Pillar: "${r.plan.pillar_title}"`);
       setPlan(r.plan);
+      appendLog(`   Step 2/2: Queuing keywords…`);
       setAutoStatus("Queuing keywords…");
       const sfd = new FormData();
       sfd.set("siteId", String(siteId));
       sfd.set("plan", JSON.stringify(r.plan));
       const sr = await saveClusterAction(sfd);
       if (!sr.ok) {
+        appendLog(`✗ Queue failed: ${sr.error ?? "save failed"}`);
         setError(sr.error ?? "save failed");
         setAutoStatus(null);
         return;
       }
+      appendLog(`✓ Queued ${sr.added ?? 0} · skipped ${sr.skipped ?? 0} dupes`);
+      appendLog(`▶ Done. Hit "Run now" on the Overview tab to publish the first one.`);
       setSaved({ added: sr.added ?? 0, skipped: sr.skipped ?? 0 });
       setAutoStatus(null);
     });
@@ -156,6 +190,30 @@ export function ClusterPlanner({
         </form>
         {error ? <p className="text-red-400 text-sm mt-3">{error}</p> : null}
       </div>
+
+      {/* Live progress log */}
+      {log.length > 0 ? (
+        <div className="bg-bg border border-border rounded-2xl p-4 mb-4 font-mono text-xs">
+          <div className="text-muted text-[0.65rem] uppercase tracking-wider font-bold mb-2">
+            Activity log
+          </div>
+          <div className="space-y-0.5 max-h-48 overflow-y-auto">
+            {log.map((line, i) => (
+              <div
+                key={i}
+                className={
+                  line.includes("✓") ? "text-accent"
+                  : line.includes("✗") ? "text-red-400"
+                  : line.includes("▶") ? "text-text font-semibold"
+                  : "text-muted"
+                }
+              >
+                {line}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {plan ? (
         <>

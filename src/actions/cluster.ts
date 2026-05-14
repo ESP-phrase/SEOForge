@@ -106,6 +106,15 @@ Audience: ${site.audience || "(not specified)"}
 
 Return 1 pillar + 10-12 cluster articles. Call the cluster_plan tool.`;
 
+  const tag = `[cluster:${site.slug}]`;
+  const t0 = Date.now();
+  console.log(`${tag} ▶ planning cluster · pillar="${pillarTopic}"`);
+
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error(`${tag} ✗ ANTHROPIC_API_KEY missing in env`);
+    return { ok: false, error: "ANTHROPIC_API_KEY not set. Restart dev after adding it to .env" };
+  }
+
   try {
     const resp = await client.messages.create({
       model: "claude-sonnet-4-5",
@@ -116,11 +125,27 @@ Return 1 pillar + 10-12 cluster articles. Call the cluster_plan tool.`;
       messages: [{ role: "user", content: userMsg }],
     });
     const tu = resp.content.find((b) => b.type === "tool_use");
-    if (!tu || tu.type !== "tool_use") return { ok: false, error: "Claude returned no plan" };
+    if (!tu || tu.type !== "tool_use") {
+      console.warn(`${tag} ⚠ Claude returned no tool_use block`);
+      return { ok: false, error: "Claude returned no plan" };
+    }
     const plan = tu.input as ClusterPlan;
+    const dur = ((Date.now() - t0) / 1000).toFixed(1);
+    const cost =
+      ((resp.usage?.input_tokens ?? 0) / 1_000_000) * 3 +
+      ((resp.usage?.output_tokens ?? 0) / 1_000_000) * 15;
+    console.log(
+      `${tag} ✓ plan ready · ${plan.articles.length} articles · ${dur}s · ~$${cost.toFixed(3)}`,
+    );
+    console.log(`${tag}   pillar: "${plan.pillar_title}"`);
+    plan.articles.forEach((a, i) => {
+      console.log(`${tag}   #${i + 1} [${a.intent}] ${a.title}`);
+    });
     return { ok: true, plan };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "claude call failed" };
+    const msg = e instanceof Error ? e.message : "claude call failed";
+    console.error(`${tag} ✗ ${msg}`);
+    return { ok: false, error: msg };
   }
 }
 
@@ -148,6 +173,9 @@ export async function saveClusterAction(formData: FormData): Promise<{
     return { ok: false, error: "invalid plan json" };
   }
 
+  const tag = `[cluster-save:site=${siteId}]`;
+  console.log(`${tag} ▶ saving ${plan.articles.length} cluster keywords`);
+
   let added = 0;
   let skipped = 0;
   for (const a of plan.articles) {
@@ -161,10 +189,13 @@ export async function saveClusterAction(formData: FormData): Promise<{
         },
       });
       added += 1;
+      console.log(`${tag}   ✓ queued: ${a.keyword}`);
     } catch {
       skipped += 1; // unique constraint
+      console.log(`${tag}   ⊘ dup:    ${a.keyword}`);
     }
   }
+  console.log(`${tag} ✓ done · added=${added} skipped=${skipped}`);
   revalidatePath(`/sites/${siteId}`);
   return { ok: true, added, skipped };
 }
