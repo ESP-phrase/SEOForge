@@ -37,7 +37,8 @@ function tolerantAdapter() {
 
   const origDelete = base.deleteSession?.bind(base);
   if (origDelete) {
-    base.deleteSession = async (token: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (base.deleteSession as any) = async (token: string) => {
       try {
         return await origDelete(token);
       } catch (e) {
@@ -49,7 +50,8 @@ function tolerantAdapter() {
 
   const origUpdate = base.updateSession?.bind(base);
   if (origUpdate) {
-    base.updateSession = async (data) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (base.updateSession as any) = async (data: Parameters<typeof origUpdate>[0]) => {
       try {
         return await origUpdate(data);
       } catch (e) {

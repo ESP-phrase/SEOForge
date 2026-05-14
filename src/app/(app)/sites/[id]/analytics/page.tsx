@@ -125,7 +125,7 @@ export default async function SiteAnalyticsPage({ params }: { params: Promise<{ 
       <PageHeader
         title={`${site.name} · Analytics`}
         subtitle={site.wpUrl}
-        right={
+        actions={
           <div className="flex gap-2">
             <Link
               href={`/sites/${siteId}/analysis`}

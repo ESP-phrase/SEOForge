@@ -9,9 +9,23 @@
  */
 import Stripe from "stripe";
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  apiVersion: "2024-12-18.acacia" as any,
+// Lazy singleton — Stripe constructor throws when key is empty, which breaks
+// Next's "collect page data" build step on Vercel where STRIPE_SECRET_KEY is
+// optional. Calling `stripe.xxx()` from a request lazily constructs.
+let _stripe: Stripe | null = null;
+export const stripe = new Proxy({} as Stripe, {
+  get(_t, prop) {
+    if (!_stripe) {
+      const key = process.env.STRIPE_SECRET_KEY ?? "";
+      if (!key) throw new Error("STRIPE_SECRET_KEY not set");
+      _stripe = new Stripe(key, {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        apiVersion: "2024-12-18.acacia" as any,
+      });
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (_stripe as any)[prop];
+  },
 });
 
 export type PlanId = "hobby" | "operator" | "agency";

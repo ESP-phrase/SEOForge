@@ -20,7 +20,10 @@ async function syncFromSubscription(sub: Stripe.Subscription) {
   const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer.id;
   const priceId = sub.items.data[0]?.price.id ?? "";
   const plan: PlanId = planFromPriceId(priceId) ?? "hobby";
-  const renews = sub.current_period_end ? new Date(sub.current_period_end * 1000) : null;
+  // current_period_end exists at runtime on Subscription but missing from some
+  // SDK versions' types. Cast to access without a type error.
+  const cpe = (sub as unknown as { current_period_end?: number }).current_period_end;
+  const renews = cpe ? new Date(cpe * 1000) : null;
   const active = sub.status === "active" || sub.status === "trialing";
 
   const user = await prisma.user.findFirst({ where: { stripeCustomerId: customerId } });
