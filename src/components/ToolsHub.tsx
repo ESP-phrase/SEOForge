@@ -72,37 +72,41 @@ export async function ToolsHub() {
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {TOOLS.map((t) => (
-          <Link
+          <div
             key={t.slug}
-            href={`/sites/${primary.id}/${t.slug}`}
-            className={`group block p-4 rounded-xl border no-underline transition-colors ${
+            className={`flex flex-col p-4 rounded-xl border transition-colors ${
               t.accent
                 ? "bg-card-grad border-accent hover:bg-accent-dim"
                 : "bg-card-grad border-border hover:border-border-strong"
             }`}
           >
-            <div className="text-2xl mb-2">{t.icon}</div>
-            <div className="font-bold text-text text-sm mb-1 leading-snug">{t.title}</div>
-            <div className="text-muted text-xs leading-snug">{t.body}</div>
+            <Link
+              href={`/sites/${primary.id}/${t.slug}`}
+              className="no-underline flex-1"
+            >
+              <div className="text-2xl mb-2">{t.icon}</div>
+              <div className="font-bold text-text text-sm mb-1 leading-snug">{t.title}</div>
+              <div className="text-muted text-xs leading-snug">{t.body}</div>
+            </Link>
             {sites.length > 1 ? (
-              <details className="mt-2" onClick={(e) => e.stopPropagation()}>
-                <summary className="text-muted-2 text-[0.65rem] uppercase tracking-wider font-bold cursor-pointer hover:text-accent list-none">
+              <div className="mt-3 pt-3 border-t border-border/50">
+                <div className="text-muted-2 text-[0.6rem] uppercase tracking-wider font-bold mb-1">
                   Switch site
-                </summary>
-                <div className="mt-1.5 space-y-0.5">
+                </div>
+                <div className="space-y-0.5">
                   {sites.slice(1).map((s) => (
                     <Link
                       key={s.id}
                       href={`/sites/${s.id}/${t.slug}`}
-                      className="block text-text text-xs hover:text-accent no-underline"
+                      className="block text-text text-xs hover:text-accent no-underline truncate"
                     >
                       → {s.name}
                     </Link>
                   ))}
                 </div>
-              </details>
+              </div>
             ) : null}
-          </Link>
+          </div>
         ))}
       </div>
     </div>
