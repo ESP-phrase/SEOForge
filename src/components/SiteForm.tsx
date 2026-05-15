@@ -117,8 +117,10 @@ export function SiteForm({
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-2xl">📄</span>
               {target === "wordpress" ? (
-                <span className="text-[0.6rem] font-extrabold uppercase tracking-wider text-accent">
-                  Selected
+                <span className="w-5 h-5 rounded-full bg-accent grid place-items-center" aria-label="Selected">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                 </span>
               ) : null}
             </div>
@@ -140,8 +142,10 @@ export function SiteForm({
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-2xl">✨</span>
               {target === "native" ? (
-                <span className="text-[0.6rem] font-extrabold uppercase tracking-wider text-accent">
-                  Selected
+                <span className="w-5 h-5 rounded-full bg-accent grid place-items-center" aria-label="Selected">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                 </span>
               ) : null}
             </div>
@@ -229,7 +233,7 @@ export function SiteForm({
         {/* Niche + Audience row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
           <div>
-            <FieldLabel hint="short phrase">Niche</FieldLabel>
+            <FieldLabel hint="(optional)">Niche</FieldLabel>
             <IconInput
               name="niche"
               defaultValue={site?.niche}
@@ -238,7 +242,7 @@ export function SiteForm({
             />
           </div>
           <div>
-            <FieldLabel hint="short phrase">Audience</FieldLabel>
+            <FieldLabel hint="(optional)">Audience</FieldLabel>
             <IconInput
               name="audience"
               defaultValue={site?.audience}
@@ -260,7 +264,7 @@ export function SiteForm({
         />
 
         {/* Author bio HTML */}
-        <FieldLabel hint="Appended to the end of every article — improves E-E-A-T signals">
+        <FieldLabel hint="(optional) Appended to the end of every article — improves E-E-A-T signals">
           Author bio HTML
         </FieldLabel>
         <TextareaWithIcon
@@ -449,11 +453,11 @@ function FieldLabel({
   hint?: string;
 }) {
   return (
-    <label className="flex items-center gap-1.5 mt-4 mb-2 text-[0.7rem] uppercase tracking-wider font-bold text-text">
+    <label className="flex items-baseline gap-2 mt-5 mb-2 text-sm font-semibold text-text">
       <span>{children}</span>
-      {required ? <span className="text-accent">●</span> : null}
+      {required ? <span className="text-accent text-base leading-none">•</span> : null}
       {hint ? (
-        <span className="text-muted-2 font-medium normal-case tracking-normal text-xs">
+        <span className="text-muted-2 font-normal text-xs">
           {hint}
         </span>
       ) : null}
