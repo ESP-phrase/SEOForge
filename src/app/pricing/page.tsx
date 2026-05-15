@@ -322,6 +322,22 @@ export default function PricingPage() {
           </div>
         </div>
 
+        {/* FAQ schema for Google rich result */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: FAQ.map((item) => ({
+                "@type": "Question",
+                name: item.q,
+                acceptedAnswer: { "@type": "Answer", text: item.a },
+              })),
+            }),
+          }}
+        />
+
         {/* FAQ */}
         <div className="max-w-3xl mx-auto mb-20">
           <h2 className="text-2xl md:text-3xl font-extrabold text-center mb-2 tracking-tight">

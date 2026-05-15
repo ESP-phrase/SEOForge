@@ -6,8 +6,16 @@ import { SparkIcon } from "@/components/Icons";
 import { DashboardMockup } from "@/components/landing/DashboardMockup";
 import { MarketingHeader } from "@/components/marketing/MarketingHeader";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "AI SEO content on autopilot — generate, optimize, publish",
+  description:
+    "SEOForge generates SEO-optimized articles with Claude, runs SERP gap analysis, builds topic clusters, and auto-publishes to WordPress or native blogs. Free Hobby plan. From $0.30 per article.",
+  alternates: { canonical: "/" },
+};
 
 export default async function LandingPage() {
   // If they're already signed in, send them straight to the dashboard.

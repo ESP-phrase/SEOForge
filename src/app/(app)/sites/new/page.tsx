@@ -9,9 +9,9 @@ export default async function NewSitePage({
 }) {
   const { error } = await searchParams;
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6">
+    <div className="max-w-[1100px] mx-auto grid grid-cols-1 xl:grid-cols-[minmax(0,720px)_300px] gap-6 justify-center">
       {/* Form column */}
-      <div>
+      <div className="min-w-0">
         <SiteForm action={createSiteAction} error={error} />
       </div>
 

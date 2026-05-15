@@ -1,8 +1,16 @@
 import { MarketingHeader } from "@/components/marketing/MarketingHeader";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { Panel } from "@/components/Panel";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Features — Topic clusters, GSC, auto-publish, anchor analysis",
+  description:
+    "Every SEO feature SEOForge ships: AI cluster planner, SERP gap analysis, WordPress auto-publish, Google Search Console, anchor-text diversity, backlink outreach, internal linking, schema markup.",
+  alternates: { canonical: "/features" },
+};
 
 const FEATURES = [
   {
