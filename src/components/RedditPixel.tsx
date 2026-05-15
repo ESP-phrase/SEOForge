@@ -18,8 +18,12 @@ import Script from "next/script";
  */
 type Rdt = (...args: unknown[]) => void;
 
+// Hardcoded — pixel ID is public anyway (exposed to every page visitor).
+// Override via env if you ever rotate it.
+const PIXEL_ID = "a2_j0e7x22zvu9e";
+
 export function RedditPixel({ email }: { email?: string }) {
-  const id = process.env.NEXT_PUBLIC_REDDIT_PIXEL_ID;
+  const id = process.env.NEXT_PUBLIC_REDDIT_PIXEL_ID || PIXEL_ID;
 
   // When email becomes available (after login on app pages), re-init with
   // advanced matching so subsequent events tie to the user.
