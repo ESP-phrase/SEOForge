@@ -95,38 +95,146 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
         ) : null}
       </Panel>
 
-      {/* Big upgrade panel when on Hobby */}
-      {user.plan === "hobby" ? (
-        <Panel className="mb-4 border-accent-border bg-card-grad shadow-glow">
-          <div className="flex items-start gap-4 flex-wrap">
-            <div className="text-4xl">⚡</div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[0.65rem] font-extrabold uppercase tracking-wider text-accent mb-1">
-                Upgrade your plan
+      {/* Plan-aware upgrade panel — shows the next plans up from where you are */}
+      {(() => {
+        type PlanCard = {
+          slug: "operator" | "agency";
+          name: string;
+          price: string;
+          articles: string;
+          features: string[];
+          recommended?: boolean;
+        };
+        const ALL_PLANS: Record<string, PlanCard> = {
+          operator: {
+            slug: "operator",
+            name: "Operator",
+            price: "$29/mo",
+            articles: "150 articles/mo",
+            features: [
+              "Up to 10 sites",
+              "Daily cron auto-publish",
+              "Backlink outreach + HARO",
+              "Self-hosted analytics",
+            ],
+          },
+          agency: {
+            slug: "agency",
+            name: "Agency",
+            price: "$149/mo",
+            articles: "1,000 articles/mo",
+            features: [
+              "Unlimited sites",
+              "Google Search Console integration",
+              "Team seats (up to 5)",
+              "Slack support · 4h SLA",
+            ],
+          },
+        };
+
+        // What plans should we show as upgrade options?
+        const upsell: PlanCard[] =
+          user.plan === "hobby"
+            ? [
+                { ...ALL_PLANS.operator, recommended: true },
+                ALL_PLANS.agency,
+              ]
+            : user.plan === "operator"
+              ? [{ ...ALL_PLANS.agency, recommended: true }]
+              : [];
+
+        if (upsell.length === 0) {
+          return (
+            <Panel className="mb-4 border-accent-border bg-card-grad shadow-glow">
+              <div className="flex items-center gap-4">
+                <div className="text-4xl">🏆</div>
+                <div>
+                  <div className="text-[0.65rem] font-extrabold uppercase tracking-wider text-accent mb-1">
+                    You&apos;re on the top plan
+                  </div>
+                  <h3 className="text-lg font-extrabold text-text">
+                    Agency · unlimited everything
+                  </h3>
+                  <p className="text-muted text-sm mt-1">
+                    Need higher caps or enterprise terms?{" "}
+                    <a
+                      href="mailto:aubreynicholsacc@gmail.com"
+                      className="text-accent hover:underline"
+                    >
+                      Get in touch
+                    </a>
+                    .
+                  </p>
+                </div>
               </div>
-              <h3 className="text-xl font-extrabold text-text mb-2">
-                Get 15x more articles + multi-site auto-publish
-              </h3>
-              <ul className="text-muted text-sm space-y-1 mb-4">
-                <li>✓ <span className="text-text font-semibold">Operator $29/mo</span> — 150 articles/mo · up to 10 sites · daily cron · backlink outreach</li>
-                <li>✓ <span className="text-text font-semibold">Agency $149/mo</span> — 1,000 articles/mo · unlimited sites · GSC integration · team seats</li>
-                <li>✓ 14-day money-back guarantee. Cancel anytime.</li>
-              </ul>
-              <div className="flex flex-wrap gap-3 items-center">
-                <Link
-                  href="/pricing"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-black rounded-xl font-extrabold text-sm no-underline hover:bg-accent/90 transition-colors"
-                >
-                  Compare plans →
-                </Link>
-                <span className="text-muted-2 text-xs">
-                  Currently using {used}/{cap} free credits this month
-                </span>
+            </Panel>
+          );
+        }
+
+        return (
+          <Panel className="mb-4 border-accent-border bg-card-grad shadow-glow">
+            <div className="flex items-start gap-4 flex-wrap mb-5">
+              <div className="text-4xl shrink-0">⚡</div>
+              <div className="min-w-0 flex-1">
+                <div className="text-[0.65rem] font-extrabold uppercase tracking-wider text-accent mb-1">
+                  Upgrade your plan
+                </div>
+                <h3 className="text-xl font-extrabold text-text">
+                  {user.plan === "hobby"
+                    ? "Get 15x more articles + multi-site auto-publish"
+                    : "Scale to 1,000 articles/month + unlimited sites"}
+                </h3>
+                <p className="text-muted text-xs mt-1">
+                  Currently using {used}/{cap} on the{" "}
+                  <span className="text-text font-semibold">{PLAN_LABEL[user.plan] ?? user.plan}</span>{" "}
+                  plan · 14-day money-back guarantee
+                </p>
               </div>
             </div>
-          </div>
-        </Panel>
-      ) : null}
+
+            <div
+              className={`grid gap-3 ${upsell.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}
+            >
+              {upsell.map((p) => (
+                <div
+                  key={p.slug}
+                  className={`relative rounded-xl p-4 border-2 ${
+                    p.recommended
+                      ? "border-accent bg-accent-dim"
+                      : "border-border bg-surface-2"
+                  }`}
+                >
+                  {p.recommended ? (
+                    <span className="absolute -top-2.5 left-3 bg-accent text-black text-[0.55rem] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded">
+                      Recommended
+                    </span>
+                  ) : null}
+                  <div className="flex items-baseline justify-between gap-2 mb-1">
+                    <div className="font-extrabold text-text">{p.name}</div>
+                    <div className="text-accent font-extrabold">{p.price}</div>
+                  </div>
+                  <div className="text-muted text-xs mb-3">{p.articles}</div>
+                  <ul className="text-muted text-xs space-y-1 mb-4">
+                    {p.features.map((f) => (
+                      <li key={f}>✓ <span className="text-text">{f}</span></li>
+                    ))}
+                  </ul>
+                  <Link
+                    href="/pricing"
+                    className={`block text-center py-2 rounded-lg text-xs font-bold no-underline transition-colors ${
+                      p.recommended
+                        ? "bg-accent text-black hover:bg-accent/90"
+                        : "bg-bg border border-border text-text hover:bg-surface"
+                    }`}
+                  >
+                    Upgrade to {p.name} →
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        );
+      })()}
 
       <Panel title="Manage subscription">
         {!isStripeConfigured() ? (
