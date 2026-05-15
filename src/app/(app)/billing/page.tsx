@@ -95,6 +95,39 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
         ) : null}
       </Panel>
 
+      {/* Big upgrade panel when on Hobby */}
+      {user.plan === "hobby" ? (
+        <Panel className="mb-4 border-accent-border bg-card-grad shadow-glow">
+          <div className="flex items-start gap-4 flex-wrap">
+            <div className="text-4xl">⚡</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[0.65rem] font-extrabold uppercase tracking-wider text-accent mb-1">
+                Upgrade your plan
+              </div>
+              <h3 className="text-xl font-extrabold text-text mb-2">
+                Get 15x more articles + multi-site auto-publish
+              </h3>
+              <ul className="text-muted text-sm space-y-1 mb-4">
+                <li>✓ <span className="text-text font-semibold">Operator $29/mo</span> — 150 articles/mo · up to 10 sites · daily cron · backlink outreach</li>
+                <li>✓ <span className="text-text font-semibold">Agency $149/mo</span> — 1,000 articles/mo · unlimited sites · GSC integration · team seats</li>
+                <li>✓ 14-day money-back guarantee. Cancel anytime.</li>
+              </ul>
+              <div className="flex flex-wrap gap-3 items-center">
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent text-black rounded-xl font-extrabold text-sm no-underline hover:bg-accent/90 transition-colors"
+                >
+                  Compare plans →
+                </Link>
+                <span className="text-muted-2 text-xs">
+                  Currently using {used}/{cap} free credits this month
+                </span>
+              </div>
+            </div>
+          </div>
+        </Panel>
+      ) : null}
+
       <Panel title="Manage subscription">
         {!isStripeConfigured() ? (
           <div className="text-sm">
