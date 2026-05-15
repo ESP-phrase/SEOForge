@@ -1,6 +1,5 @@
-import Link from "next/link";
-import { signInWithGoogleAction } from "@/actions/auth";
-import { signInWithPasswordAction } from "@/actions/signup";
+import { signInWithGoogleAction, signInWithXAction } from "@/actions/auth";
+import { isXAuthConfigured } from "@/lib/auth";
 import { SparkIcon } from "@/components/Icons";
 
 export default async function LoginPage({
@@ -14,10 +13,10 @@ export default async function LoginPage({
     <>
       <div className="text-center mb-7">
         <h1 className="text-3xl font-extrabold inline-flex items-center gap-2 tracking-tight">
-          Welcome back
+          Welcome to SEOForge
           <SparkIcon size={22} className="text-accent" />
         </h1>
-        <div className="text-muted text-sm mt-2">Sign in to your SEOForge account.</div>
+        <div className="text-muted text-sm mt-2">Sign in to continue.</div>
       </div>
 
       <div className="relative">
@@ -44,7 +43,7 @@ export default async function LoginPage({
           <form action={signInWithGoogleAction}>
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white text-gray-900 rounded-xl font-semibold text-sm hover:bg-gray-100 transition-colors mb-4"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white text-gray-900 rounded-xl font-semibold text-sm hover:bg-gray-100 transition-colors mb-3"
             >
               <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
                 <path fill="#4285F4" d="M16.51 8.18c0-.57-.05-1.13-.15-1.66H9v3.13h4.21c-.18.99-.74 1.83-1.58 2.39v1.97h2.55c1.49-1.38 2.34-3.41 2.34-5.83z" />
@@ -56,54 +55,22 @@ export default async function LoginPage({
             </button>
           </form>
 
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-muted-2 text-[0.65rem] uppercase tracking-wider font-bold">
-              or
-            </span>
-            <div className="flex-1 h-px bg-border" />
-          </div>
+          {isXAuthConfigured() ? (
+            <form action={signInWithXAction}>
+              <button
+                type="submit"
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-black text-white border border-white/15 rounded-xl font-semibold text-sm hover:bg-zinc-900 transition-colors"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+                Continue with X
+              </button>
+            </form>
+          ) : null}
 
-          <form action={signInWithPasswordAction} className="space-y-3">
-            <div>
-              <label className="block text-muted text-[0.7rem] uppercase tracking-wider font-semibold mb-1.5">
-                Email
-              </label>
-              <input
-                name="email"
-                type="email"
-                required
-                autoComplete="email"
-                placeholder="you@example.com"
-                className="w-full px-3 py-2.5 bg-bg border border-border rounded-lg text-sm text-text focus:outline-none focus:border-accent-border"
-              />
-            </div>
-            <div>
-              <label className="block text-muted text-[0.7rem] uppercase tracking-wider font-semibold mb-1.5">
-                Password
-              </label>
-              <input
-                name="password"
-                type="password"
-                required
-                autoComplete="current-password"
-                placeholder="Your password"
-                className="w-full px-3 py-2.5 bg-bg border border-border rounded-lg text-sm text-text focus:outline-none focus:border-accent-border"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full px-4 py-2.5 bg-accent text-black rounded-xl font-bold text-sm hover:bg-accent/90 transition-colors mt-2"
-            >
-              Sign in →
-            </button>
-          </form>
-
-          <div className="text-muted text-xs text-center mt-5">
-            New here?{" "}
-            <Link href="/signup" className="text-accent hover:underline">
-              Create an account
-            </Link>
+          <div className="text-muted-2 text-xs mt-5 text-center">
+            By signing in you agree to our terms. Google handles all auth.
           </div>
         </div>
       </div>

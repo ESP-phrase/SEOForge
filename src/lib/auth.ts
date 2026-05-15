@@ -16,10 +16,14 @@
 import NextAuth, { type DefaultSession } from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Google from "next-auth/providers/google";
+import Twitter from "next-auth/providers/twitter";
 import { prisma } from "@/lib/db";
 
 export function isGoogleAuthConfigured(): boolean {
   return !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+}
+export function isXAuthConfigured(): boolean {
+  return !!(process.env.TWITTER_CLIENT_ID && process.env.TWITTER_CLIENT_SECRET);
 }
 
 /**
@@ -101,6 +105,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
       authorization: { params: { scope: "openid email profile" } },
     }),
+    ...(isXAuthConfigured()
+      ? [
+          Twitter({
+            clientId: process.env.TWITTER_CLIENT_ID ?? "",
+            clientSecret: process.env.TWITTER_CLIENT_SECRET ?? "",
+          }),
+        ]
+      : []),
   ],
   callbacks: {
     signIn: async ({ user }) => {

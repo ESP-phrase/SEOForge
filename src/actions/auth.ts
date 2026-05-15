@@ -13,6 +13,11 @@ export async function signInWithGoogleAction(): Promise<void> {
   await signIn("google", { redirectTo: "/dashboard" });
 }
 
+export async function signInWithXAction(): Promise<void> {
+  // X (Twitter) OAuth — provider name is "twitter" in next-auth v5.
+  await signIn("twitter", { redirectTo: "/dashboard" });
+}
+
 /**
  * Quick admin login — bypasses magic link/OAuth. Gated by ADMIN_QUICK_LOGIN=1.
  *
