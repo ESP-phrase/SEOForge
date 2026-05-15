@@ -7,7 +7,8 @@ const SITE_NAME = "SEOForge";
 const DEFAULT_TITLE = "SEOForge — AI SEO content on autopilot";
 const DEFAULT_DESC =
   "Generate, optimize, and auto-publish SEO articles to WordPress and native blogs. Topic clusters, schema, internal linking, GSC, and analytics — built for indie operators and agencies.";
-const OG_IMAGE = `${SITE}/og.png`;
+// Next.js auto-generates this from src/app/opengraph-image.tsx at /opengraph-image
+const OG_IMAGE = `${SITE}/opengraph-image`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE),
