@@ -65,7 +65,7 @@ const TIERS: Tier[] = [
     priceMo: 149,
     priceYr: 119,
     accent: false,
-    cta: "Talk to us",
+    cta: "Start 14-day trial",
     articles: "1,000 articles / mo",
     sites: "Unlimited sites",
     features: [

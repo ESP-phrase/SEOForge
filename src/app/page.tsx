@@ -304,7 +304,7 @@ export default async function LandingPage() {
                 "Team seats (up to 5)",
                 "Slack support · 4h",
               ],
-              cta: "Talk to sales",
+              cta: "Start 14-day trial",
               featured: false,
             },
           ].map((p) => (
