@@ -1,4 +1,4 @@
-import { signInWithGoogleAction, signInWithXAction, signInWithGitHubAction } from "@/actions/auth";
+import { signInWithGoogleAction, signInWithXAction, signInWithGitHubAction, sendMagicLinkAction } from "@/actions/auth";
 import { isXAuthConfigured, isGitHubAuthConfigured } from "@/lib/auth";
 import { SparkIcon } from "@/components/Icons";
 
@@ -82,8 +82,33 @@ export default async function LoginPage({
             </form>
           ) : null}
 
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-muted-2 text-[0.65rem] uppercase tracking-wider font-bold">
+              or email me a link
+            </span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+
+          <form action={sendMagicLinkAction} className="space-y-3">
+            <input
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="you@example.com"
+              className="w-full px-3 py-2.5 bg-bg border border-border rounded-lg text-sm text-text focus:outline-none focus:border-accent-border"
+            />
+            <button
+              type="submit"
+              className="w-full px-4 py-2.5 bg-accent text-black rounded-xl font-bold text-sm hover:bg-accent/90 transition-colors"
+            >
+              Send magic link →
+            </button>
+          </form>
+
           <div className="text-muted-2 text-xs mt-5 text-center">
-            By signing in you agree to our terms. Google handles all auth.
+            One-click sign-in. No password to remember.
           </div>
         </div>
       </div>

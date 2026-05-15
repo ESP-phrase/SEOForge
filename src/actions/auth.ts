@@ -3,6 +3,32 @@
 import { redirect } from "next/navigation";
 import { signIn, signOut } from "@/lib/auth";
 
+export async function sendMagicLinkAction(formData: FormData): Promise<void> {
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  if (!email || !email.includes("@")) {
+    redirect(`/login?error=${encodeURIComponent("Enter a valid email.")}`);
+  }
+  try {
+    await signIn("resend", {
+      email,
+      redirectTo: `/login/check?email=${encodeURIComponent(email)}`,
+    });
+  } catch (e) {
+    // Next.js redirect() throws NEXT_REDIRECT — let it propagate.
+    if (
+      e &&
+      typeof e === "object" &&
+      "digest" in e &&
+      typeof (e as { digest?: string }).digest === "string" &&
+      (e as { digest: string }).digest.startsWith("NEXT_REDIRECT")
+    ) {
+      throw e;
+    }
+    const msg = e instanceof Error ? e.message : "Could not send link.";
+    redirect(`/login?error=${encodeURIComponent(msg)}`);
+  }
+}
+
 export async function signOutAction(): Promise<void> {
   await signOut({ redirect: false });
   redirect("/login");
