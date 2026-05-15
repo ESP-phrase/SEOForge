@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BrandMark } from "@/components/BrandMark";
 
 export function MarketingFooter() {
@@ -9,11 +10,20 @@ export function MarketingFooter() {
           <span className="font-bold text-text">SEOForge</span>
           <span className="text-muted-2">© 2026</span>
         </div>
-        <div className="flex gap-6">
-          <a href="#" className="hover:text-text no-underline">Privacy</a>
-          <a href="#" className="hover:text-text no-underline">Terms</a>
-          <a href="#" className="hover:text-text no-underline">Status</a>
-          <a href="#" className="hover:text-text no-underline">Twitter</a>
+        <div className="flex gap-6 flex-wrap">
+          <Link href="/pricing" className="hover:text-text no-underline">Pricing</Link>
+          <Link href="/blog" className="hover:text-text no-underline">Blog</Link>
+          <Link href="/changelog" className="hover:text-text no-underline">Changelog</Link>
+          <Link href="/privacy" className="hover:text-text no-underline">Privacy</Link>
+          <Link href="/terms" className="hover:text-text no-underline">Terms</Link>
+          <a
+            href="https://github.com/ESP-phrase/SEOForge"
+            target="_blank"
+            rel="noreferrer"
+            className="hover:text-text no-underline"
+          >
+            GitHub
+          </a>
         </div>
       </div>
     </footer>
