@@ -11,14 +11,20 @@ const PUBLIC_PATHS = [
   "/_next",
   "/_clarity",
   "/favicon",
+  "/icon",
   "/features",
   "/pricing",
   "/testimonials",
   "/docs",
   "/blog",
   "/changelog",
+  "/roadmap",
+  "/affiliate",
   "/privacy",
   "/terms",
+  "/sitemap.xml",
+  "/robots.txt",
+  "/og.png",
 ];
 const PUBLIC_EXACT = new Set(["/"]);
 
