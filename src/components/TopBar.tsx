@@ -13,6 +13,7 @@ const NAV = [
   { href: "/backlinks", label: "Backlinks" },
   { href: "/haro", label: "HARO" },
   { href: "/activity", label: "Activity" },
+  { href: "/pricing", label: "Pricing" },
 ];
 
 export function TopBar({ username }: { username?: string }) {
@@ -62,6 +63,12 @@ export function TopBar({ username }: { username?: string }) {
       <div className="ml-auto flex items-center gap-3">
         {username ? (
           <>
+            <Link
+              href="/pricing"
+              className="px-3 py-1.5 bg-accent text-black rounded-lg text-xs font-extrabold no-underline hover:bg-accent/90 transition-colors"
+            >
+              ⚡ Upgrade
+            </Link>
             <Link
               href="/billing"
               className="px-3 py-2 text-xs font-medium text-muted hover:text-text no-underline rounded-lg hover:bg-surface-2 transition-colors"
