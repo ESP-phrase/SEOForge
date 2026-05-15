@@ -104,12 +104,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
       authorization: { params: { scope: "openid email profile" } },
+      // Auto-link a Google identity to an existing User with the same email
+      // address. Safe here because email verification on the existing User
+      // happened out-of-band (magic link) — we know the user owns it.
+      allowDangerousEmailAccountLinking: true,
     }),
     ...(isXAuthConfigured()
       ? [
           Twitter({
             clientId: process.env.TWITTER_CLIENT_ID ?? "",
             clientSecret: process.env.TWITTER_CLIENT_SECRET ?? "",
+            allowDangerousEmailAccountLinking: true,
           }),
         ]
       : []),
