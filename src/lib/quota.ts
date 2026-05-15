@@ -29,8 +29,22 @@ export async function canGenerateArticle(): Promise<{ ok: boolean; reason?: stri
 export async function incrementArticleUsage(): Promise<void> {
   const user = await getPrimaryUser();
   if (!user) return;
-  await prisma.user.update({
+  const updated = await prisma.user.update({
     where: { id: user.id },
     data: { articlesUsed: { increment: 1 } },
+    select: { email: true, articlesUsed: true, articleCredits: true, plan: true },
   });
+  // Fire low-credit warning email once at the 80% threshold (only on the
+  // exact tick that crosses it, so we don't spam every subsequent article).
+  const prev = updated.articlesUsed - 1;
+  const threshold = Math.ceil(updated.articleCredits * 0.8);
+  if (prev < threshold && updated.articlesUsed >= threshold && updated.email) {
+    const { sendLowCreditEmail } = await import("@/lib/email");
+    void sendLowCreditEmail(
+      updated.email,
+      updated.articlesUsed,
+      updated.articleCredits,
+      updated.plan,
+    );
+  }
 }

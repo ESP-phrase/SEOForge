@@ -33,8 +33,33 @@ model User {
   articleCredits    Int       @default(10)
   articlesUsed      Int       @default(0)
 
+  // Affiliate program
+  // referralCode: this user's own code others can use to sign up under them
+  // referredBy:   the referral code that was used when this user signed up
+  referralCode      String?   @unique
+  referredBy        String?
+  payoutEmail       String?   // where commissions go (defaults to user email)
+
   accounts Account[]
   sessions Session[]
+  referrals       Referral[] @relation("Referrer")
+  referredAs      Referral[] @relation("Referred")
+}
+
+// One row per referred user. Created when someone signs up with a referral
+// code in their cookie. Used to compute commissions: when the referred user
+// makes a paid subscription, we accrue 30% recurring for 12 months.
+model Referral {
+  id           Int      @id @default(autoincrement())
+  referrerId   String
+  referrer     User     @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredId   String   @unique
+  referred     User     @relation("Referred", fields: [referredId], references: [id], onDelete: Cascade)
+  status       String   @default("signed_up") // signed_up | subscribed | churned
+  totalEarnings Float   @default(0)
+  createdAt    DateTime @default(now())
+
+  @@index([referrerId])
 }
 
 model Account {

@@ -161,6 +161,35 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
       }
     },
+    createUser: async ({ user }) => {
+      if (!user?.id) return;
+      // Attach referral if the user came in via /?r=CODE (cookie set by middleware).
+      try {
+        const { cookies } = await import("next/headers");
+        const c = await cookies();
+        const refCode = c.get("sf_ref")?.value;
+        if (refCode) {
+          const referrer = await prisma.user.findUnique({ where: { referralCode: refCode } });
+          if (referrer && referrer.id !== user.id) {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { referredBy: refCode },
+            });
+            await prisma.referral.create({
+              data: { referrerId: referrer.id, referredId: user.id },
+            });
+            console.log(`[referral] ${user.email} attributed to ${referrer.email}`);
+          }
+        }
+      } catch (e) {
+        console.warn("[referral] attribution failed:", e);
+      }
+      // Welcome email
+      if (user.email) {
+        const { sendWelcomeEmail } = await import("@/lib/email");
+        void sendWelcomeEmail(user.email, user.name);
+      }
+    },
   },
 });
 

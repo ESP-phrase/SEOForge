@@ -26,6 +26,21 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const host = (req.headers.get("host") ?? "").toLowerCase().split(":")[0];
 
+  // ── Affiliate tracking ────────────────────────────────────────────────
+  // ?r=ABC123 in the URL → drop a 60-day cookie. Auth.js createUser event
+  // reads this cookie and attaches referredBy on the User row.
+  const refCode = req.nextUrl.searchParams.get("r");
+  if (refCode && /^[A-Z0-9]{6,12}$/.test(refCode)) {
+    const res = NextResponse.next();
+    res.cookies.set("sf_ref", refCode, {
+      maxAge: 60 * 24 * 3600,
+      sameSite: "lax",
+      secure: true,
+      path: "/",
+    });
+    return res;
+  }
+
   // ── Blog subdomain routing ───────────────────────────────────────────────
   // blog.seoforge.org → rewrite to /blog/* so the same Next.js routes serve.
   //   blog.seoforge.org/             → /blog
