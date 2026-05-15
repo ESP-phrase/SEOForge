@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Clarity } from "@/components/Clarity";
+import { RedditPixel } from "@/components/RedditPixel";
 
 const SITE = "https://www.seoforge.org";
 const SITE_NAME = "SEOForge";
@@ -142,6 +143,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="bg-bg text-text font-sans min-h-screen">
         <Clarity />
+        <RedditPixel />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_SCHEMA) }}
