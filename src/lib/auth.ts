@@ -17,6 +17,7 @@ import NextAuth, { type DefaultSession } from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Google from "next-auth/providers/google";
 import Twitter from "next-auth/providers/twitter";
+import GitHub from "next-auth/providers/github";
 import { prisma } from "@/lib/db";
 
 export function isGoogleAuthConfigured(): boolean {
@@ -24,6 +25,9 @@ export function isGoogleAuthConfigured(): boolean {
 }
 export function isXAuthConfigured(): boolean {
   return !!(process.env.TWITTER_CLIENT_ID && process.env.TWITTER_CLIENT_SECRET);
+}
+export function isGitHubAuthConfigured(): boolean {
+  return !!(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET);
 }
 
 /**
@@ -114,6 +118,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           Twitter({
             clientId: process.env.TWITTER_CLIENT_ID ?? "",
             clientSecret: process.env.TWITTER_CLIENT_SECRET ?? "",
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
+    ...(isGitHubAuthConfigured()
+      ? [
+          GitHub({
+            clientId: process.env.GITHUB_CLIENT_ID ?? "",
+            clientSecret: process.env.GITHUB_CLIENT_SECRET ?? "",
             allowDangerousEmailAccountLinking: true,
           }),
         ]

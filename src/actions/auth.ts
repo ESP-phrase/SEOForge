@@ -18,6 +18,10 @@ export async function signInWithXAction(): Promise<void> {
   await signIn("twitter", { redirectTo: "/dashboard" });
 }
 
+export async function signInWithGitHubAction(): Promise<void> {
+  await signIn("github", { redirectTo: "/dashboard" });
+}
+
 /**
  * Quick admin login — bypasses magic link/OAuth. Gated by ADMIN_QUICK_LOGIN=1.
  *
