@@ -3,15 +3,22 @@ import type { NextRequest } from "next/server";
 
 const PUBLIC_PATHS = [
   "/login",
+  "/signup",
   "/api/auth",
   "/api/cron",
+  "/api/stripe",
+  "/api/domains",
   "/_next",
+  "/_clarity",
   "/favicon",
   "/features",
   "/pricing",
   "/testimonials",
   "/docs",
   "/blog",
+  "/changelog",
+  "/privacy",
+  "/terms",
 ];
 const PUBLIC_EXACT = new Set(["/"]);
 
