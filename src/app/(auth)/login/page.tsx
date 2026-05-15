@@ -15,18 +15,22 @@ export default async function LoginPage({
 
   return (
     <>
-      <div className="text-center mb-7">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight inline-flex items-center gap-2 leading-tight">
-          Welcome to{" "}
+      <div className="text-center mb-8">
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight whitespace-nowrap">
+          <span className="text-text">Welcome to </span>
           <span className="text-accent">SEOForge</span>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" className="text-accent">
-            <path
-              d="M12 2l1.5 6.5L20 10l-6.5 1.5L12 18l-1.5-6.5L4 10l6.5-1.5L12 2z"
-              fill="currentColor"
-            />
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="inline-block ml-1 -mt-2 text-accent align-middle"
+            aria-hidden
+          >
+            <path d="M12 2l1.6 6.4L20 10l-6.4 1.6L12 18l-1.6-6.4L4 10l6.4-1.6L12 2z" />
           </svg>
         </h1>
-        <p className="text-muted text-sm mt-3">Sign in to continue to your account</p>
+        <p className="text-muted text-sm mt-2">Sign in to continue to your account</p>
       </div>
 
       <div className="relative">
@@ -120,13 +124,26 @@ export default async function LoginPage({
             </div>
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-accent text-black rounded-xl font-extrabold text-sm hover:bg-accent/90 transition-colors shadow-glow"
+              className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 bg-accent text-black rounded-xl font-extrabold text-sm hover:bg-accent/90 transition-colors shadow-glow relative"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8L19 13M15 9h0M17.8 6.2L19 5M3 21l9-9M12.2 6.2L11 5" />
+              {/* Wand */}
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8L19 13M17.8 6.2L19 5M3 21l8.5-8.5M12.2 6.2L11 5" />
+                <path d="M15 9l-1.5 1.5" />
               </svg>
               Send magic link
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+                className="absolute right-4"
+              >
                 <line x1="5" y1="12" x2="19" y2="12" />
                 <polyline points="12 5 19 12 12 19" />
               </svg>
