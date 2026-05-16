@@ -76,7 +76,7 @@ Draft a response now via the haro_draft tool.`;
 
   try {
     const resp = await client.messages.create({
-      model: resolveModel("claude-sonnet-4-5"),
+      model: resolveModel("claude-sonnet-4-6"),
       max_tokens: 1200,
       system: SYSTEM,
       tools: [TOOL],

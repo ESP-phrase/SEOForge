@@ -112,7 +112,7 @@ Return 1 pillar + 10-12 cluster articles. Call the cluster_plan tool.`;
 
   try {
     const resp = await client.messages.create({
-      model: resolveModel("claude-sonnet-4-5"),
+      model: resolveModel("claude-sonnet-4-6"),
       max_tokens: 3500,
       system: SYSTEM,
       tools: [TOOL],
