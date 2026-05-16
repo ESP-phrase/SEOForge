@@ -221,7 +221,37 @@ export default function PricingPage() {
                     {t.cta}
                   </LinkButton>
                 ) : (
-                  <form action={startCheckoutAction}>
+                  <form
+                    action={startCheckoutAction}
+                    onSubmit={() => {
+                      // Browser-pixel mid-funnel events. CAPI fires the same
+                      // events server-side; TikTok dedupes by event_id and
+                      // Reddit by conversion_id (Stripe session id). For the
+                      // browser side we don't yet have a session id, so we
+                      // just let it count — slight over-count on this event
+                      // is fine because it's a signal, not money.
+                      const value = annual
+                        ? (t.name === "Operator" ? 276 : t.name === "Agency" ? 1428 : 0)
+                        : (t.name === "Operator" ? 29 : t.name === "Agency" ? 149 : 0);
+                      try {
+                        const w = window as unknown as { ttq?: { track?: (e: string, p: Record<string, unknown>) => void } };
+                        w.ttq?.track?.("InitiateCheckout", {
+                          value,
+                          currency: "USD",
+                          content_name: `${t.name} plan`,
+                          content_id: t.name.toLowerCase(),
+                        });
+                      } catch { /* ignore */ }
+                      try {
+                        const w = window as unknown as { rdt?: (e: string, a: string, p: Record<string, unknown>) => void };
+                        w.rdt?.("track", "AddToCart", {
+                          value,
+                          currency: "USD",
+                          itemCount: 1,
+                        });
+                      } catch { /* ignore */ }
+                    }}
+                  >
                     <input type="hidden" name="plan" value={t.name.toLowerCase()} />
                     <input type="hidden" name="cadence" value={annual ? "annual" : "monthly"} />
                     <button

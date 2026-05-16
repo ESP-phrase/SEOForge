@@ -50,6 +50,44 @@ export async function startCheckoutAction(formData: FormData): Promise<void> {
   });
 
   if (!checkout.url) redirect("/pricing?error=stripe+session+failed");
+
+  // Mid-funnel ad signal: user picked a plan and is heading to Stripe.
+  // Fires server-side so iOS/ad-block can't strip it. The browser pixel
+  // fires the same event on click — TikTok dedupes via event_id, Reddit
+  // dedupes via conversion_id (Stripe checkout session ID).
+  const value = plan === "operator" ? (cadence === "annual" ? 276 : 29)
+              : plan === "agency"   ? (cadence === "annual" ? 1428 : 149)
+              : 0;
+  try {
+    const { sendTikTokEvent } = await import("@/lib/tiktokCapi");
+    await sendTikTokEvent({
+      eventName: "InitiateCheckout",
+      email: email ?? undefined,
+      userId,
+      value,
+      currency: "USD",
+      contentName: `${plan} plan`,
+      contentId: checkout.id,
+      eventId: checkout.id,
+    });
+  } catch {
+    /* never block checkout on tracking */
+  }
+  try {
+    const { sendRedditEvent } = await import("@/lib/redditCapi");
+    await sendRedditEvent({
+      eventName: "AddToCart",
+      email: email ?? undefined,
+      userId,
+      value,
+      currency: "USD",
+      itemCount: 1,
+      conversionId: checkout.id,
+    });
+  } catch {
+    /* never block checkout on tracking */
+  }
+
   redirect(checkout.url);
 }
 
