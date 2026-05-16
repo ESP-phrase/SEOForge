@@ -83,7 +83,7 @@ export async function sendRedditEvent(opts: {
 
     const event: Record<string, unknown> = {
       event_at: Date.now(),                    // unix epoch milliseconds
-      action_source: "website",                // we only fire from web
+      action_source: "WEBSITE",                // Reddit v3 requires UPPERCASE
       type,
     };
     if (clickId) event.click_id = clickId;
