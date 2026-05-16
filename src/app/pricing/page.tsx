@@ -10,8 +10,9 @@ import { startCheckoutAction } from "@/actions/billing";
 type Tier = {
   name: string;
   tagline: string;
-  priceMo: number;
-  priceYr: number;
+  trialFee: number;     // one-time charged today (in USD)
+  priceMo: number;      // billed/mo after 14-day trial
+  priceYr: number;      // billed/mo equivalent on annual cadence
   accent: boolean;
   cta: string;
   articles: string;
@@ -24,10 +25,11 @@ const TIERS: Tier[] = [
   {
     name: "Hobby",
     tagline: "For a single niche site or weekend project.",
-    priceMo: 0,
-    priceYr: 0,
+    trialFee: 5,
+    priceMo: 14.99,
+    priceYr: 12,        // ~20% off, billed $144/yr
     accent: false,
-    cta: "Start free",
+    cta: "Start $5 trial",
     articles: "10 articles / mo",
     sites: "1 site",
     features: [
@@ -36,16 +38,17 @@ const TIERS: Tier[] = [
       "Quality gates + drafts review",
       "WordPress auto-publish",
       "Activity log + cost tracking",
-      "Bring your own Anthropic key",
+      "Hosted Claude — no API key needed",
     ],
   },
   {
     name: "Operator",
     tagline: "Run a portfolio of niche sites on autopilot.",
+    trialFee: 5,
     priceMo: 29,
     priceYr: 23,
     accent: true,
-    cta: "Start 14-day trial",
+    cta: "Start $5 trial",
     articles: "150 articles / mo",
     sites: "Up to 10 sites",
     features: [
@@ -62,10 +65,11 @@ const TIERS: Tier[] = [
   {
     name: "Agency",
     tagline: "Manage client sites with usage-based caps.",
+    trialFee: 9,
     priceMo: 149,
     priceYr: 119,
     accent: false,
-    cta: "Start 14-day trial",
+    cta: "Start $9 trial",
     articles: "1,000 articles / mo",
     sites: "Unlimited sites",
     features: [
@@ -74,7 +78,7 @@ const TIERS: Tier[] = [
       "Per-site daily caps & schedules",
       "White-label client reports",
       "Team seats (up to 5)",
-      "Priority Anthropic capacity",
+      "Priority Claude capacity",
       "Slack support · 4h",
       "Onboarding call + SEO audit",
     ],
@@ -191,16 +195,15 @@ export default function PricingPage() {
                   {t.name}
                 </div>
                 <div className="flex items-baseline gap-2 mt-3">
-                  <span className="text-5xl font-extrabold tracking-tight">
-                    ${price}
+                  <span className="text-5xl font-extrabold tracking-tight text-accent">
+                    ${t.trialFee}
                   </span>
-                  <span className="text-muted text-sm">/month</span>
+                  <span className="text-muted text-sm">today</span>
                 </div>
-                {annual && t.priceMo > 0 ? (
-                  <div className="text-muted-2 text-xs mt-1">
-                    billed ${price * 12}/yr · save ${(t.priceMo - t.priceYr) * 12}
-                  </div>
-                ) : null}
+                <div className="text-muted-2 text-xs mt-1">
+                  then <span className="text-text font-semibold">${price}/mo</span>
+                  {annual ? <> · billed ${Math.round(price * 12)}/yr</> : <> after 14-day trial</>}
+                </div>
                 <p className="text-muted text-sm mt-3 mb-5">{t.tagline}</p>
 
                 <div className="bg-surface-2 border border-border rounded-lg p-3 mb-5">
@@ -216,23 +219,15 @@ export default function PricingPage() {
                     </li>
                   ))}
                 </ul>
-                {t.priceMo === 0 ? (
-                  <LinkButton href="/login" full variant={t.accent ? "primary" : "secondary"}>
-                    {t.cta}
-                  </LinkButton>
-                ) : (
-                  <form
+                <form
                     action={startCheckoutAction}
                     onSubmit={() => {
-                      // Browser-pixel mid-funnel events. CAPI fires the same
-                      // events server-side; TikTok dedupes by event_id and
-                      // Reddit by conversion_id (Stripe session id). For the
-                      // browser side we don't yet have a session id, so we
-                      // just let it count — slight over-count on this event
-                      // is fine because it's a signal, not money.
-                      const value = annual
-                        ? (t.name === "Operator" ? 276 : t.name === "Agency" ? 1428 : 0)
-                        : (t.name === "Operator" ? 29 : t.name === "Agency" ? 149 : 0);
+                      // Browser-pixel mid-funnel events. Value reports the
+                      // immediate cash collected (trial fee) so attribution
+                      // matches what Stripe actually charges today. The
+                      // larger CompletePayment fires 14 days later when
+                      // the trial converts to the monthly rate.
+                      const value = t.trialFee;
                       try {
                         const w = window as unknown as { ttq?: { track?: (e: string, p: Record<string, unknown>) => void } };
                         // Fire both AddToCart and InitiateCheckout — pick
@@ -277,7 +272,9 @@ export default function PricingPage() {
                       {t.cta}
                     </button>
                   </form>
-                )}
+                <div className="mt-3 text-center text-muted-2 text-[0.7rem]">
+                  Cancel any time during trial · no further charges
+                </div>
               </div>
             );
           })}

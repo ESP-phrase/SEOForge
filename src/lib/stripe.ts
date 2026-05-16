@@ -1,11 +1,14 @@
 /**
- * Stripe billing helpers. One subscription per User. Three plans:
- *   hobby (free, 10 articles/mo)
- *   operator ($29/mo or $23/mo annual, 150 articles/mo)
- *   agency  ($149/mo or $119/mo annual, 1000 articles/mo)
+ * Stripe billing helpers. One subscription per User. Three plans, all paid
+ * with a $5/$9 14-day paid trial that converts to the monthly price:
+ *   hobby    — $5 trial → $14.99/mo, 10 articles/mo
+ *   operator — $5 trial → $29/mo,    150 articles/mo
+ *   agency   — $9 trial → $149/mo,   1000 articles/mo
  *
  * Plan/credit state lives on the User row and is rewritten by the webhook
- * on checkout.session.completed and customer.subscription.updated.
+ * on checkout.session.completed and customer.subscription.updated. Users
+ * on a trial are credited the full plan's articles — we let them USE the
+ * tool during trial, that's the whole point.
  */
 import Stripe from "stripe";
 
@@ -38,22 +41,41 @@ export const PLAN_CREDITS: Record<PlanId, number> = {
 };
 
 /**
- * Map (plan, cadence) → Stripe Price ID. Set in env after creating prices in
- * the Stripe dashboard. Hobby has no Stripe price — it's the default state.
+ * Map (plan, cadence) → recurring Stripe Price ID (the one that charges
+ * monthly/annual after the trial ends).
  */
 export function priceIdFor(plan: PlanId, cadence: Cadence): string | null {
-  if (plan === "hobby") return null;
   const map: Record<string, string | undefined> = {
+    hobby_monthly:    process.env.STRIPE_PRICE_HOBBY_MONTHLY,
+    hobby_annual:     process.env.STRIPE_PRICE_HOBBY_ANNUAL,
     operator_monthly: process.env.STRIPE_PRICE_OPERATOR_MONTHLY,
-    operator_annual: process.env.STRIPE_PRICE_OPERATOR_ANNUAL,
-    agency_monthly: process.env.STRIPE_PRICE_AGENCY_MONTHLY,
-    agency_annual: process.env.STRIPE_PRICE_AGENCY_ANNUAL,
+    operator_annual:  process.env.STRIPE_PRICE_OPERATOR_ANNUAL,
+    agency_monthly:   process.env.STRIPE_PRICE_AGENCY_MONTHLY,
+    agency_annual:    process.env.STRIPE_PRICE_AGENCY_ANNUAL,
   };
   return map[`${plan}_${cadence}`] ?? null;
 }
 
+/**
+ * One-time "trial fee" price ID per plan. Charged upfront at checkout
+ * before the 14-day trial begins. $5 for Hobby/Operator, $9 for Agency.
+ */
+export function trialFeePriceIdFor(plan: PlanId): string | null {
+  const map: Record<PlanId, string | undefined> = {
+    hobby:    process.env.STRIPE_PRICE_HOBBY_TRIAL,
+    operator: process.env.STRIPE_PRICE_OPERATOR_TRIAL,
+    agency:   process.env.STRIPE_PRICE_AGENCY_TRIAL,
+  };
+  return map[plan] ?? null;
+}
+
 /** Reverse lookup: which plan does a Stripe price ID correspond to? */
 export function planFromPriceId(priceId: string): PlanId | null {
+  if (
+    priceId === process.env.STRIPE_PRICE_HOBBY_MONTHLY ||
+    priceId === process.env.STRIPE_PRICE_HOBBY_ANNUAL
+  )
+    return "hobby";
   if (
     priceId === process.env.STRIPE_PRICE_OPERATOR_MONTHLY ||
     priceId === process.env.STRIPE_PRICE_OPERATOR_ANNUAL
@@ -66,6 +88,13 @@ export function planFromPriceId(priceId: string): PlanId | null {
     return "agency";
   return null;
 }
+
+/** Per-plan trial fee in dollars — used for ad pixel value attribution. */
+export const TRIAL_FEE_USD: Record<PlanId, number> = {
+  hobby: 5,
+  operator: 5,
+  agency: 9,
+};
 
 export function appUrl(): string {
   return (

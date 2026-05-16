@@ -43,8 +43,8 @@ export default async function LandingPage() {
             powerful dashboard.
           </p>
           <div className="flex gap-3 mt-7 flex-wrap">
-            <LinkButton href="/login" size="lg">
-              Start Free →
+            <LinkButton href="/pricing" size="lg">
+              Start $5 trial →
             </LinkButton>
             <LinkButton href="#features" variant="secondary" size="lg">
               See how it works
