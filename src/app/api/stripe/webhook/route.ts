@@ -60,6 +60,22 @@ async function syncFromSubscription(sub: Stripe.Subscription) {
     } catch {
       /* never block subscription sync on tracking */
     }
+    try {
+      const { sendTikTokEvent } = await import("@/lib/tiktokCapi");
+      const value = plan === "operator" ? 29 : plan === "agency" ? 149 : 0;
+      await sendTikTokEvent({
+        eventName: "CompletePayment",
+        email: user.email,
+        userId: user.id,
+        value,
+        currency: "USD",
+        contentName: `${plan} plan`,
+        contentId: sub.id,
+        eventId: sub.id, // dedupe with browser pixel
+      });
+    } catch {
+      /* never block subscription sync on tracking */
+    }
   }
 }
 

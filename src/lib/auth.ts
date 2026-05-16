@@ -205,6 +205,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       } catch {
         /* never block signup on tracking */
       }
+      // TikTok conversion: CompleteRegistration
+      try {
+        const { sendTikTokEvent } = await import("@/lib/tiktokCapi");
+        await sendTikTokEvent({
+          eventName: "CompleteRegistration",
+          email: user.email,
+          userId: user.id,
+          eventId: `signup_${user.id}`,
+        });
+      } catch {
+        /* never block signup on tracking */
+      }
     },
   },
 });

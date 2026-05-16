@@ -66,6 +66,20 @@ export async function middleware(req: NextRequest) {
     return res;
   }
 
+  // ── TikTok click attribution ─────────────────────────────────────────
+  // TikTok appends ?ttclid=... to ad clicks. Cookied for 30 days.
+  const ttclid = req.nextUrl.searchParams.get("ttclid");
+  if (ttclid) {
+    const res = NextResponse.next();
+    res.cookies.set("sf_ttclid", ttclid, {
+      maxAge: 30 * 24 * 3600,
+      sameSite: "lax",
+      secure: true,
+      path: "/",
+    });
+    return res;
+  }
+
   // ── Blog subdomain routing ───────────────────────────────────────────────
   // blog.seoforge.org → rewrite to /blog/* so the same Next.js routes serve.
   //   blog.seoforge.org/             → /blog
