@@ -79,11 +79,18 @@ export async function sendTikTokEvent(opts: {
     if (userAgent) user.user_agent = userAgent;
     if (ttclid) user.ttclid = ttclid;
 
-    const properties: Record<string, unknown> = {};
+    // TikTok rejects events with empty content_id in their diagnostics, even
+    // though it's technically optional. Always populate it — fall back to a
+    // stable per-event-type slug so non-product events (signup, page view)
+    // still validate cleanly.
+    const properties: Record<string, unknown> = {
+      content_id: opts.contentId || `seoforge_${opts.eventName.toLowerCase()}`,
+      content_type: "product",
+    };
     if (opts.value != null) properties.value = opts.value;
     if (opts.currency) properties.currency = opts.currency;
     if (opts.contentName) properties.content_name = opts.contentName;
-    if (opts.contentId) properties.content_id = opts.contentId;
+    else properties.content_name = opts.eventName;
 
     const event: Record<string, unknown> = {
       event: opts.eventName,
