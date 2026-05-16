@@ -230,20 +230,22 @@ export default function PricingPage() {
                         // either as TikTok campaign optimization goal.
                         // AddToCart gives more events for early-stage algo
                         // training when purchase volume is still low.
-                        w.ttq?.track?.("AddToCart", {
+                        // Fire 3 distinct TikTok events so each is available
+                        // as a campaign optimization goal. AddToCart and
+                        // InitiateCheckout fire at the same moment (Subscribe
+                        // click). AddPaymentInfo is a slightly tighter mid-
+                        // funnel signal — server side fires it too with the
+                        // same event_id pattern for dedup.
+                        const props = {
                           value,
                           currency: "USD",
                           content_name: `${t.name} plan`,
                           content_id: t.name.toLowerCase(),
                           content_type: "product",
-                        });
-                        w.ttq?.track?.("InitiateCheckout", {
-                          value,
-                          currency: "USD",
-                          content_name: `${t.name} plan`,
-                          content_id: t.name.toLowerCase(),
-                          content_type: "product",
-                        });
+                        };
+                        w.ttq?.track?.("AddToCart", props);
+                        w.ttq?.track?.("InitiateCheckout", props);
+                        w.ttq?.track?.("AddPaymentInfo", props);
                       } catch { /* ignore */ }
                       try {
                         const w = window as unknown as { rdt?: (e: string, a: string, p: Record<string, unknown>) => void };

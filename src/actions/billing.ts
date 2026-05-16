@@ -83,30 +83,33 @@ export async function startCheckoutAction(formData: FormData): Promise<void> {
   const value = TRIAL_FEE_USD[plan];
   try {
     const { sendTikTokEvent } = await import("@/lib/tiktokCapi");
-    // Fire BOTH AddToCart and InitiateCheckout for TikTok. AddToCart is
-    // what we recommend optimizing on early — more events = faster algo
-    // training. InitiateCheckout stays for funnel reporting. Different
-    // event_ids so TikTok counts them as separate signals.
-    await sendTikTokEvent({
-      eventName: "AddToCart",
-      email: email ?? undefined,
-      userId,
-      value,
-      currency: "USD",
-      contentName: `${plan} plan`,
-      contentId: checkout.id,
-      eventId: `atc_${checkout.id}`,
-    });
-    await sendTikTokEvent({
-      eventName: "InitiateCheckout",
-      email: email ?? undefined,
-      userId,
-      value,
-      currency: "USD",
-      contentName: `${plan} plan`,
-      contentId: checkout.id,
-      eventId: checkout.id,
-    });
+    // Fire THREE TikTok events for the same Subscribe-click → Stripe-redirect
+    // moment, all with distinct event_ids so TikTok counts them separately.
+    // This gives ad campaigns three optimization-goal choices, each at a
+    // slightly different funnel depth:
+    //   AddToCart        — "interested" signal, highest volume
+    //   InitiateCheckout — "decided" signal, slightly tighter
+    //   AddPaymentInfo   — "ready to pay" signal, tightest mid-funnel
+    // Stripe Checkout doesn't fire a true AddPaymentInfo event, so this is
+    // synthesised at session-create time. Algorithmically still useful — the
+    // event correlates with eventual CompletePayment.
+    const tt = [
+      { name: "AddToCart" as const,        eid: `atc_${checkout.id}` },
+      { name: "InitiateCheckout" as const, eid: checkout.id },
+      { name: "AddPaymentInfo" as const,   eid: `api_${checkout.id}` },
+    ];
+    for (const e of tt) {
+      await sendTikTokEvent({
+        eventName: e.name,
+        email: email ?? undefined,
+        userId,
+        value,
+        currency: "USD",
+        contentName: `${plan} plan`,
+        contentId: checkout.id,
+        eventId: e.eid,
+      });
+    }
   } catch {
     /* never block checkout on tracking */
   }
