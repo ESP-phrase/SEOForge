@@ -46,9 +46,15 @@ export async function startCheckoutAction(formData: FormData): Promise<void> {
   // recurring subscription price on a 14-day free trial — so the next
   // charge after the trial fee lands 14 days later at the full monthly
   // rate. Stripe Checkout handles both line items in one session.
+  // Payment methods: "card" + "link" explicitly enables Stripe Link (one-click
+  // checkout with stored card). Apple Pay and Google Pay surface automatically
+  // on the "card" rail when the buyer is on a supported device, provided the
+  // Stripe dashboard has wallets enabled (Settings → Payment methods → Wallets).
+  // We omit explicit Apple/Google entries so Stripe picks them up per device.
   const checkout = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
+    payment_method_types: ["card", "link"],
     line_items: [
       { price: trialFeePriceId, quantity: 1 },  // one-time trial fee
       { price: priceId,         quantity: 1 },  // recurring subscription
