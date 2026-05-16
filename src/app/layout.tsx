@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Clarity } from "@/components/Clarity";
 import { RedditPixel } from "@/components/RedditPixel";
+import { TikTokPixel } from "@/components/TikTokPixel";
 
 const SITE = "https://www.seoforge.org";
 const SITE_NAME = "SEOForge";
@@ -144,6 +145,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-bg text-text font-sans min-h-screen">
         <Clarity />
         <RedditPixel />
+        <TikTokPixel />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_SCHEMA) }}
