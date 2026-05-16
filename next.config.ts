@@ -17,34 +17,19 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Allow ad-platform event-builder tools (TikTok, Reddit, Microsoft,
-        // Google Tag Assistant, Meta) to iframe-embed the site so their
-        // codeless event setup tools work. Without this, X-Frame-Options
-        // blocks the embed and event builders display a blank screen.
+        // Fully open iframe embedding — needed so ad-platform event-builder
+        // tools (TikTok, Reddit, Microsoft, Google Tag Assistant, Meta) can
+        // load the site inside their codeless setup UIs without 'Forbidden'
+        // errors. Trade-off: lower XSS-via-clickjacking protection. Acceptable
+        // for a marketing site; revisit if we add high-trust admin actions.
         source: "/:path*",
         headers: [
-          {
-            key: "Content-Security-Policy",
-            value: [
-              "frame-ancestors",
-              "'self'",
-              "https://*.tiktok.com",
-              "https://ads.tiktok.com",
-              "https://business.tiktok.com",
-              "https://*.reddit.com",
-              "https://ads.reddit.com",
-              "https://*.microsoft.com",
-              "https://ads.microsoft.com",
-              "https://clarity.microsoft.com",
-              "https://*.google.com",
-              "https://tagassistant.google.com",
-              "https://*.facebook.com",
-            ].join(" "),
-          },
-          // X-Frame-Options is being deprecated in favor of CSP frame-ancestors,
-          // but older crawlers still check it. Allow same-origin and let CSP
-          // handle the rest.
-          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Content-Security-Policy", value: "frame-ancestors *" },
+          // Remove the legacy X-Frame-Options header — Vercel adds SAMEORIGIN
+          // by default and that overrides our CSP for older clients.
+          { key: "X-Frame-Options", value: "ALLOWALL" },
+          // CORS — allow ad bots to fetch metadata
+          { key: "Access-Control-Allow-Origin", value: "*" },
         ],
       },
     ];
