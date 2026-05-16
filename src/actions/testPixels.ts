@@ -28,12 +28,29 @@ export async function fireAllServerEvents(): Promise<Row[]> {
   console.log = (...a: unknown[]) => { captured.push(a.join(" ")); origLog(...a); };
   console.warn = (...a: unknown[]) => { captured.push(a.join(" ")); origWarn(...a); };
 
+  // Fire every TikTok standard event once so each row in Events Manager
+  // flips from "Waiting for activity" → "Active" and becomes available
+  // as a campaign optimization goal.
   const ttEvents: { event: TikTokEventName; props?: Record<string, unknown> }[] = [
     { event: "ViewContent",          props: { contentId: "test_pixels_page", contentName: "Test pixels page" } },
+    { event: "ClickButton",          props: { contentId: "test_button",      contentName: "Test button click" } },
+    { event: "Search",               props: { contentId: "test_search",      contentName: "Test search" } },
+    { event: "AddToWishlist",        props: { contentId: "operator",         contentName: "Operator plan", value: 29, currency: "USD" } },
     { event: "AddToCart",            props: { contentId: "operator",         contentName: "Operator plan", value: 29, currency: "USD" } },
+    { event: "AddPaymentInfo",       props: { contentId: "operator",         contentName: "Operator plan", value: 29, currency: "USD" } },
     { event: "InitiateCheckout",     props: { contentId: "operator",         contentName: "Operator plan", value: 29, currency: "USD" } },
-    { event: "CompleteRegistration", props: { contentId: `signup_${txnId}`,  contentName: "Free signup" } },
+    { event: "PlaceAnOrder",         props: { contentId: "operator",         contentName: "Operator plan", value: 29, currency: "USD" } },
     { event: "CompletePayment",      props: { contentId: txnId,              contentName: "Operator plan", value: 29, currency: "USD" } },
+    { event: "CompleteRegistration", props: { contentId: `signup_${txnId}`,  contentName: "Free signup" } },
+    { event: "Subscribe",            props: { contentId: `sub_${txnId}`,     contentName: "Newsletter subscribe" } },
+    { event: "Contact",              props: { contentId: "test_contact",     contentName: "Contact form" } },
+    { event: "Download",             props: { contentId: "test_download",    contentName: "Test download" } },
+    { event: "SubmitForm",           props: { contentId: "test_form",        contentName: "Test form submit" } },
+    { event: "CustomizeProduct",     props: { contentId: "test_customize",   contentName: "Test customize" } },
+    { event: "FindLocation",         props: { contentId: "test_location",    contentName: "Test find location" } },
+    { event: "ScheduleAppointment",  props: { contentId: "test_appointment", contentName: "Test appointment" } },
+    { event: "StartTrial",           props: { contentId: "operator",         contentName: "Operator plan", value: 1, currency: "USD" } },
+    { event: "ApplicationApproval",  props: { contentId: "test_application", contentName: "Test application" } },
   ];
 
   for (const e of ttEvents) {

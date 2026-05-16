@@ -32,11 +32,27 @@ export function TestPixelsClient() {
           results.push({ platform: "TikTok", event, ok: false, note: String(e).slice(0, 80) });
         }
       };
-      fireTik("ViewContent",          { value: 0, currency: "USD", content_id: "test_pixels_page", content_name: "Test pixels page", content_type: "product" });
-      fireTik("AddToCart",            { value: 29, currency: "USD", content_id: "operator", content_name: "Operator plan", content_type: "product" });
-      fireTik("InitiateCheckout",     { value: 29, currency: "USD", content_id: "operator", content_name: "Operator plan", content_type: "product" });
-      fireTik("CompleteRegistration", { value: 0, currency: "USD", content_id: `signup_${txnId}`, content_name: "Free signup", content_type: "product" });
-      fireTik("CompletePayment",      { value: 29, currency: "USD", content_id: txnId, content_name: "Operator plan", content_type: "product" });
+      // Fire every TikTok standard event once so each row in Events Manager
+      // flips to Active and becomes available as a campaign optimization goal.
+      fireTik("ViewContent",          { value: 0,  currency: "USD", content_id: "test_pixels_page", content_name: "Test pixels page",   content_type: "product" });
+      fireTik("ClickButton",          { value: 0,  currency: "USD", content_id: "test_button",      content_name: "Test button click",  content_type: "product" });
+      fireTik("Search",               { value: 0,  currency: "USD", content_id: "test_search",      content_name: "Test search",        content_type: "product", search_string: "seoforge" });
+      fireTik("AddToWishlist",        { value: 29, currency: "USD", content_id: "operator",         content_name: "Operator plan",      content_type: "product" });
+      fireTik("AddToCart",            { value: 29, currency: "USD", content_id: "operator",         content_name: "Operator plan",      content_type: "product" });
+      fireTik("AddPaymentInfo",       { value: 29, currency: "USD", content_id: "operator",         content_name: "Operator plan",      content_type: "product" });
+      fireTik("InitiateCheckout",     { value: 29, currency: "USD", content_id: "operator",         content_name: "Operator plan",      content_type: "product" });
+      fireTik("PlaceAnOrder",         { value: 29, currency: "USD", content_id: "operator",         content_name: "Operator plan",      content_type: "product" });
+      fireTik("CompletePayment",      { value: 29, currency: "USD", content_id: txnId,              content_name: "Operator plan",      content_type: "product" });
+      fireTik("CompleteRegistration", { value: 0,  currency: "USD", content_id: `signup_${txnId}`,  content_name: "Free signup",        content_type: "product" });
+      fireTik("Subscribe",            { value: 0,  currency: "USD", content_id: `sub_${txnId}`,     content_name: "Newsletter",         content_type: "product" });
+      fireTik("Contact",              { value: 0,  currency: "USD", content_id: "test_contact",     content_name: "Contact form",       content_type: "product" });
+      fireTik("Download",             { value: 0,  currency: "USD", content_id: "test_download",    content_name: "Test download",      content_type: "product" });
+      fireTik("SubmitForm",           { value: 0,  currency: "USD", content_id: "test_form",        content_name: "Test form submit",   content_type: "product" });
+      fireTik("CustomizeProduct",     { value: 0,  currency: "USD", content_id: "test_customize",   content_name: "Test customize",     content_type: "product" });
+      fireTik("FindLocation",         { value: 0,  currency: "USD", content_id: "test_location",    content_name: "Test find location", content_type: "product" });
+      fireTik("ScheduleAppointment",  { value: 0,  currency: "USD", content_id: "test_appointment", content_name: "Test appointment",   content_type: "product" });
+      fireTik("StartTrial",           { value: 1,  currency: "USD", content_id: "operator",         content_name: "Operator plan",      content_type: "product" });
+      fireTik("ApplicationApproval",  { value: 0,  currency: "USD", content_id: "test_application", content_name: "Test application",   content_type: "product" });
 
       // ── Reddit browser pixel ──────────────────────────────────────────
       type Rdt = (e: string, a: string, p: Record<string, unknown>) => void;

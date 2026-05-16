@@ -18,19 +18,30 @@ import { cookies, headers } from "next/headers";
 const DEFAULT_PIXEL_ID = "D846P43C77U6NFPBOPMG";
 const TIKTOK_API = "https://business-api.tiktok.com/open_api/v1.3/event/track/";
 
+// Full TikTok standard-events catalog. Adding all of them so the Events
+// Manager status flips from "Waiting for activity" to "Active" for every
+// row, making every event available as a campaign optimization goal —
+// even if we don't fire it from production code yet.
 export type TikTokEventName =
   | "ViewContent"
   | "ClickButton"
   | "Search"
-  | "AddToCart"
   | "AddToWishlist"
+  | "AddToCart"
+  | "AddPaymentInfo"
   | "InitiateCheckout"
   | "PlaceAnOrder"
-  | "CompleteRegistration"  // signup
-  | "CompletePayment"       // paid subscription
+  | "CompletePayment"
+  | "CompleteRegistration"
   | "Subscribe"
   | "Contact"
-  | "Download";
+  | "Download"
+  | "SubmitForm"
+  | "CustomizeProduct"
+  | "FindLocation"
+  | "ScheduleAppointment"
+  | "StartTrial"
+  | "ApplicationApproval";
 
 function sha256(s: string): string {
   return crypto.createHash("sha256").update(s.trim().toLowerCase()).digest("hex");
