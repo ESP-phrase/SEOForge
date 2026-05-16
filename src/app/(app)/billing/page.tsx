@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { Panel } from "@/components/Panel";
 import { openBillingPortalAction } from "@/actions/billing";
 import { PLAN_CREDITS, isStripeConfigured } from "@/lib/stripe";
+import { PurchaseConversion } from "@/components/PurchaseConversion";
 
 export const dynamic = "force-dynamic";
 
@@ -37,12 +38,22 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
       />
 
       {sp.status === "success" ? (
-        <Panel className="mb-4 border-accent-border">
-          <div className="text-accent font-bold">✓ Subscription active</div>
-          <div className="text-muted text-sm mt-1">
-            Your plan is live. Credits should appear here within a few seconds — if not, refresh.
-          </div>
-        </Panel>
+        <>
+          <Panel className="mb-4 border-accent-border">
+            <div className="text-accent font-bold">✓ Subscription active</div>
+            <div className="text-muted text-sm mt-1">
+              Your plan is live. Credits should appear here within a few seconds — if not, refresh.
+            </div>
+          </Panel>
+          {user.plan !== "hobby" && user.stripeSubId ? (
+            <PurchaseConversion
+              value={user.plan === "operator" ? 29 : user.plan === "agency" ? 149 : 0}
+              currency="USD"
+              transactionId={user.stripeSubId}
+              plan={user.plan}
+            />
+          ) : null}
+        </>
       ) : null}
       {sp.error ? (
         <Panel className="mb-4">

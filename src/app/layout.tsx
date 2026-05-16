@@ -3,6 +3,8 @@ import "./globals.css";
 import { Clarity } from "@/components/Clarity";
 import { RedditPixel } from "@/components/RedditPixel";
 import { TikTokPixel } from "@/components/TikTokPixel";
+import { GoogleAds } from "@/components/GoogleAds";
+import { MicrosoftAds } from "@/components/MicrosoftAds";
 
 const SITE = "https://www.seoforge.org";
 const SITE_NAME = "SEOForge";
@@ -146,6 +148,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Clarity />
         <RedditPixel />
         <TikTokPixel />
+        <GoogleAds />
+        <MicrosoftAds />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_SCHEMA) }}
