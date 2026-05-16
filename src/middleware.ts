@@ -9,6 +9,7 @@ const PUBLIC_PATHS = [
   "/api/stripe",
   "/api/domains",
   "/api/og",
+  "/api/chat",
   "/_next",
   "/_clarity",
   "/favicon",

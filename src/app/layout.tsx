@@ -6,6 +6,7 @@ import { TikTokPixel } from "@/components/TikTokPixel";
 import { GoogleAds } from "@/components/GoogleAds";
 import { MicrosoftAds } from "@/components/MicrosoftAds";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { ChatWidget } from "@/components/ChatWidget";
 
 const SITE = "https://www.seoforge.org";
 const SITE_NAME = "SEOForge";
@@ -156,6 +157,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_SCHEMA) }}
         />
         {children}
+        <ChatWidget />
         <SpeedInsights />
       </body>
     </html>
