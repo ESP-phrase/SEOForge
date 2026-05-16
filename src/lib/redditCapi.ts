@@ -15,7 +15,7 @@
 import crypto from "node:crypto";
 import { cookies, headers } from "next/headers";
 
-const DEFAULT_PIXEL_ID = "a2_j0e7x22zvu9e";
+const DEFAULT_PIXEL_ID = "a2_j0nbovdr0uc1";
 
 export type RedditEventName =
   | "PageVisit"
