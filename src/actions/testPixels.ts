@@ -30,6 +30,7 @@ export async function fireAllServerEvents(): Promise<Row[]> {
 
   const ttEvents: { event: TikTokEventName; props?: Record<string, unknown> }[] = [
     { event: "ViewContent",          props: { contentId: "test_pixels_page", contentName: "Test pixels page" } },
+    { event: "AddToCart",            props: { contentId: "operator",         contentName: "Operator plan", value: 29, currency: "USD" } },
     { event: "InitiateCheckout",     props: { contentId: "operator",         contentName: "Operator plan", value: 29, currency: "USD" } },
     { event: "CompleteRegistration", props: { contentId: `signup_${txnId}`,  contentName: "Free signup" } },
     { event: "CompletePayment",      props: { contentId: txnId,              contentName: "Operator plan", value: 29, currency: "USD" } },

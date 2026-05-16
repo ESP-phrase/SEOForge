@@ -32,10 +32,11 @@ export function TestPixelsClient() {
           results.push({ platform: "TikTok", event, ok: false, note: String(e).slice(0, 80) });
         }
       };
-      fireTik("ViewContent",          { value: 0, currency: "USD", content_id: "test_pixels_page", content_name: "Test pixels page" });
-      fireTik("InitiateCheckout",     { value: 29, currency: "USD", content_id: "operator", content_name: "Operator plan" });
-      fireTik("CompleteRegistration", { value: 0, currency: "USD", content_id: `signup_${txnId}`, content_name: "Free signup" });
-      fireTik("CompletePayment",      { value: 29, currency: "USD", content_id: txnId, content_name: "Operator plan" });
+      fireTik("ViewContent",          { value: 0, currency: "USD", content_id: "test_pixels_page", content_name: "Test pixels page", content_type: "product" });
+      fireTik("AddToCart",            { value: 29, currency: "USD", content_id: "operator", content_name: "Operator plan", content_type: "product" });
+      fireTik("InitiateCheckout",     { value: 29, currency: "USD", content_id: "operator", content_name: "Operator plan", content_type: "product" });
+      fireTik("CompleteRegistration", { value: 0, currency: "USD", content_id: `signup_${txnId}`, content_name: "Free signup", content_type: "product" });
+      fireTik("CompletePayment",      { value: 29, currency: "USD", content_id: txnId, content_name: "Operator plan", content_type: "product" });
 
       // ── Reddit browser pixel ──────────────────────────────────────────
       type Rdt = (e: string, a: string, p: Record<string, unknown>) => void;

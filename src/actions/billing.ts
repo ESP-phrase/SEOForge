@@ -60,6 +60,20 @@ export async function startCheckoutAction(formData: FormData): Promise<void> {
               : 0;
   try {
     const { sendTikTokEvent } = await import("@/lib/tiktokCapi");
+    // Fire BOTH AddToCart and InitiateCheckout for TikTok. AddToCart is
+    // what we recommend optimizing on early — more events = faster algo
+    // training. InitiateCheckout stays for funnel reporting. Different
+    // event_ids so TikTok counts them as separate signals.
+    await sendTikTokEvent({
+      eventName: "AddToCart",
+      email: email ?? undefined,
+      userId,
+      value,
+      currency: "USD",
+      contentName: `${plan} plan`,
+      contentId: checkout.id,
+      eventId: `atc_${checkout.id}`,
+    });
     await sendTikTokEvent({
       eventName: "InitiateCheckout",
       email: email ?? undefined,

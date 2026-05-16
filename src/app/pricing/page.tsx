@@ -235,11 +235,23 @@ export default function PricingPage() {
                         : (t.name === "Operator" ? 29 : t.name === "Agency" ? 149 : 0);
                       try {
                         const w = window as unknown as { ttq?: { track?: (e: string, p: Record<string, unknown>) => void } };
+                        // Fire both AddToCart and InitiateCheckout — pick
+                        // either as TikTok campaign optimization goal.
+                        // AddToCart gives more events for early-stage algo
+                        // training when purchase volume is still low.
+                        w.ttq?.track?.("AddToCart", {
+                          value,
+                          currency: "USD",
+                          content_name: `${t.name} plan`,
+                          content_id: t.name.toLowerCase(),
+                          content_type: "product",
+                        });
                         w.ttq?.track?.("InitiateCheckout", {
                           value,
                           currency: "USD",
                           content_name: `${t.name} plan`,
                           content_id: t.name.toLowerCase(),
+                          content_type: "product",
                         });
                       } catch { /* ignore */ }
                       try {
