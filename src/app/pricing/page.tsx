@@ -135,23 +135,19 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-bg text-text">
       <MarketingHeader />
-      <main className="max-w-[1400px] mx-auto px-6 md:px-10 py-16">
-        {/* Header */}
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <div className="inline-block bg-accent-dim text-accent border border-accent-border rounded-full text-xs font-bold uppercase tracking-wider px-3 py-1 mb-5">
-            Simple, usage-based pricing
-          </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
+      <main className="max-w-[1400px] mx-auto px-6 md:px-10 py-6 md:py-8">
+        {/* Header — compact, sits above the fold */}
+        <div className="text-center max-w-2xl mx-auto mb-4">
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">
             Pay for results, <span className="text-accent">not seats.</span>
           </h1>
-          <p className="text-muted text-lg mt-4">
-            Pick the plan that matches your publishing volume. Cancel anytime. The
-            articles you generate stay on your WordPress site forever.
+          <p className="text-muted text-sm mt-1.5">
+            Pick your plan · 14-day paid trial · cancel anytime.
           </p>
         </div>
 
         {/* Billing toggle */}
-        <div className="flex items-center justify-center gap-3 mb-10">
+        <div className="flex items-center justify-center gap-2 mb-5">
           <button
             onClick={() => setAnnual(false)}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
@@ -173,45 +169,45 @@ export default function PricingPage() {
           </button>
         </div>
 
-        {/* Tier cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto mb-20">
+        {/* Tier cards — compact so all 3 fit in viewport */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 max-w-5xl mx-auto mb-6">
           {TIERS.map((t) => {
             const price = annual ? t.priceYr : t.priceMo;
             return (
               <div
                 key={t.name}
-                className={`relative rounded-2xl p-7 border ${
+                className={`relative rounded-xl p-4 border ${
                   t.accent
                     ? "border-accent-border bg-card-grad shadow-glow"
                     : "border-border bg-card-grad"
                 }`}
               >
                 {t.accent ? (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-black text-[0.65rem] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full">
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-accent text-black text-[0.6rem] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full">
                     Most popular
                   </div>
                 ) : null}
-                <div className="text-sm text-muted font-semibold uppercase tracking-wider">
+                <div className="text-xs text-muted font-semibold uppercase tracking-wider">
                   {t.name}
                 </div>
-                <div className="flex items-baseline gap-2 mt-3">
-                  <span className="text-5xl font-extrabold tracking-tight text-accent">
+                <div className="flex items-baseline gap-2 mt-1">
+                  <span className="text-3xl font-extrabold tracking-tight text-accent">
                     ${t.trialFee}
                   </span>
-                  <span className="text-muted text-sm">today</span>
+                  <span className="text-muted text-xs">today</span>
                 </div>
-                <div className="text-muted-2 text-xs mt-1">
+                <div className="text-muted-2 text-[0.7rem] mt-0.5">
                   then <span className="text-text font-semibold">${price}/mo</span>
-                  {annual ? <> · billed ${Math.round(price * 12)}/yr</> : <> after 14-day trial</>}
+                  {annual ? <> · ${Math.round(price * 12)}/yr</> : <> after 14-day trial</>}
                 </div>
-                <p className="text-muted text-sm mt-3 mb-5">{t.tagline}</p>
+                <p className="text-muted text-xs mt-2 mb-3 line-clamp-1">{t.tagline}</p>
 
-                <div className="bg-surface-2 border border-border rounded-lg p-3 mb-5">
-                  <div className="text-accent text-lg font-extrabold">{t.articles}</div>
-                  <div className="text-muted text-xs mt-0.5">{t.sites}</div>
+                <div className="bg-surface-2 border border-border rounded-lg p-2 mb-3">
+                  <div className="text-accent text-sm font-extrabold">{t.articles}</div>
+                  <div className="text-muted text-[0.7rem]">{t.sites}</div>
                 </div>
 
-                <ul className="space-y-2 text-sm mb-6">
+                <ul className="space-y-1 text-xs mb-3">
                   {t.features.map((f) => (
                     <li key={f} className="flex items-start gap-2">
                       <span className="text-accent mt-0.5">✓</span>
@@ -263,7 +259,7 @@ export default function PricingPage() {
                     <input type="hidden" name="cadence" value={annual ? "annual" : "monthly"} />
                     <button
                       type="submit"
-                      className={`w-full px-5 py-2.5 text-sm font-bold rounded-xl transition-colors ${
+                      className={`w-full px-4 py-2 text-xs font-bold rounded-lg transition-colors ${
                         t.accent
                           ? "bg-accent text-black hover:bg-accent/90"
                           : "bg-surface-2 text-text border border-border hover:bg-surface"
@@ -272,8 +268,8 @@ export default function PricingPage() {
                       {t.cta}
                     </button>
                   </form>
-                <div className="mt-3 text-center text-muted-2 text-[0.7rem]">
-                  Cancel any time during trial · no further charges
+                <div className="mt-1.5 text-center text-muted-2 text-[0.65rem]">
+                  Cancel anytime during trial
                 </div>
               </div>
             );

@@ -31,7 +31,7 @@ export function MarketingHeader() {
           <Link href="/login" className="text-sm text-muted hover:text-text no-underline">
             Sign in
           </Link>
-          <LinkButton href="/login">Start Free</LinkButton>
+          <LinkButton href="/pricing">Start $5 trial</LinkButton>
         </div>
       </div>
     </header>
