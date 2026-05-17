@@ -1,17 +1,15 @@
 /**
- * Auth.js v5 with magic-link email auth via Resend.
+ * Auth.js v5 with magic-link email auth via Resend, plus Google / GitHub /
+ * Twitter OAuth providers.
  *
- * - Email-only login: user enters email → we send a one-time link → click signs in.
- * - Database sessions (Prisma adapter), so multiple devices can stay signed in.
- * - Self-hosted single-admin gate: only emails in ALLOWED_EMAILS may sign in.
- *   If ALLOWED_EMAILS is empty, the FIRST email to sign in becomes admin and is
- *   the only one allowed thereafter.
+ * - Magic-link login: user enters email → we send a one-time link → click signs in.
+ * - Database sessions (Prisma adapter) so multiple devices stay signed in.
+ * - Open signups — anyone with a valid email can create an account. This is
+ *   a public SaaS, not a self-hosted single-admin gate.
  *
  * Required env vars:
  *   RESEND_API_KEY  — from https://resend.com/api-keys
  *   EMAIL_FROM      — verified sender (or "onboarding@resend.dev" for testing)
- * Optional:
- *   ALLOWED_EMAILS  — comma-separated list of allowed signin emails
  */
 import NextAuth, { type DefaultSession } from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -81,24 +79,6 @@ declare module "next-auth" {
   }
 }
 
-function allowedEmails(): string[] {
-  return (process.env.ALLOWED_EMAILS ?? "")
-    .split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-async function isAllowed(email: string): Promise<boolean> {
-  const e = email.toLowerCase().trim();
-  const allow = allowedEmails();
-  if (allow.length > 0) return allow.includes(e);
-  // No explicit allowlist: first email becomes admin and locks the door behind it.
-  const userCount = await prisma.user.count();
-  if (userCount === 0) return true;
-  const existing = await prisma.user.findUnique({ where: { email: e } });
-  return !!existing;
-}
-
 export const { handlers, signIn, signOut, auth } = NextAuth({
   debug: true,
   adapter: tolerantAdapter(),
@@ -140,9 +120,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     signIn: async ({ user }) => {
-      const email = user?.email?.toLowerCase().trim();
-      if (!email) return false;
-      return isAllowed(email);
+      // Open signups — anyone with a valid email can register and sign in.
+      return !!user?.email;
     },
     session: async ({ session, user }) => {
       if (user) {
