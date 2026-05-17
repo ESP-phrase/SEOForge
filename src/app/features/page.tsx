@@ -61,7 +61,8 @@ export default function FeaturesPage() {
             publishing, and tracking — across as many WordPress sites as you can run.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* 8 features — 4 cols on lg gives a perfect 4/4 split instead of 3/3/2 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {FEATURES.map((f) => (
             <Panel key={f.title} title={f.title}>
               <p className="text-muted text-sm leading-relaxed">{f.body}</p>
